@@ -1,0 +1,259 @@
+﻿@implements IDisposable
+
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<header class="main-navbar">
+
+    <div class="nav-container">
+
+        <!-- =========================
+             BRAND
+             ========================= -->
+
+        <NavLink href="/"
+                 class="brand"
+                 Match="NavLinkMatch.All"
+                 @onclick="CloseMenu">
+
+            <div class="brand-logo">
+
+                <svg viewBox="0 0 50 58"
+                     fill="none"
+                     aria-hidden="true">
+
+                    <path d="M25 3L43 10V25C43 38 34 49 25 55C16 49 7 38 7 25V10L25 3Z"
+                          stroke="currentColor"
+                          stroke-width="3" />
+
+                    <path d="M25 14C20.5 14 17 17.5 17 22C17 28 25 35 25 35C25 35 33 28 33 22C33 17.5 29.5 14 25 14Z"
+                          stroke="currentColor"
+                          stroke-width="2.5" />
+
+                    <circle cx="25"
+                            cy="22"
+                            r="2.5"
+                            fill="currentColor" />
+
+                </svg>
+
+            </div>
+
+            <div class="brand-text">
+
+                <strong>Prishtina</strong>
+
+                <span>Civic Helper</span>
+
+            </div>
+
+        </NavLink>
+
+
+        @if (isAuthenticated)
+        {
+            <!-- =========================
+                 MOBILE MENU BUTTON
+                 ========================= -->
+
+            <button class="mobile-menu-button"
+                    type="button"
+                    @onclick="ToggleMenu"
+                    aria-label="Hap menunë"
+                    aria-expanded="@isMenuOpen">
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </button>
+
+
+            <!-- =========================
+                 NAVIGATION
+                 ========================= -->
+
+            <nav class="desktop-nav @(isMenuOpen ? "mobile-open" : "")">
+
+                <NavLink href="/"
+                         class="nav-link"
+                         Match="NavLinkMatch.All"
+                         @onclick="CloseMenu">
+
+                    Home
+
+                </NavLink>
+
+
+                <NavLink href="/report-issue"
+                         class="nav-link"
+                         @onclick="CloseMenu">
+
+                    Raporto problem
+
+                </NavLink>
+
+
+                <NavLink href="/issues"
+                         class="nav-link"
+                         @onclick="CloseMenu">
+
+                    Shiko Raportimet
+
+                </NavLink>
+
+
+                <NavLink href="/about"
+                         class="nav-link"
+                         @onclick="CloseMenu">
+
+                    Rreth projektit
+
+                </NavLink>
+
+
+                <NavLink href="/contact"
+                         class="nav-link"
+                         @onclick="CloseMenu">
+
+                    Kontakto
+
+                </NavLink>
+
+            </nav>
+
+
+            <!-- =========================
+                 AUTHENTICATED USER
+                 ========================= -->
+
+            <div class="auth-buttons">
+
+                <span class="welcome-user">
+                    Mirë se erdhe, @userName 👋
+                </span>
+
+                <button type="button"
+                        class="login-btn"
+                        @onclick="Logout">
+
+                    <span class="auth-icon">↪</span>
+
+                    <span>Dil</span>
+
+                </button>
+
+            </div>
+        }
+        else
+        {
+            <!-- =========================
+                 GUEST AUTH BUTTONS
+                 ========================= -->
+
+            <div class="auth-buttons">
+
+                <a href="/Account/Login"
+                   class="login-btn">
+
+                    <span class="auth-icon">♙</span>
+
+                    <span>Hyr</span>
+
+                </a>
+
+
+                <a href="/Account/Register"
+                   class="signup-btn">
+
+                    <span class="auth-icon">+</span>
+
+                    <span>Regjistrohu</span>
+
+                </a>
+
+            </div>
+        }
+
+    </div>
+
+</header>
+
+
+@code {
+
+    private bool isMenuOpen;
+
+    private bool isAuthenticated;
+
+    private string userName = "Përdorues";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+
+        await LoadAuthenticationState();
+    }
+
+
+    private async Task LoadAuthenticationState()
+    {
+        var authState =
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        var user = authState.User;
+
+        isAuthenticated =
+            user.Identity?.IsAuthenticated == true;
+
+        if (isAuthenticated)
+        {
+            userName =
+                user.FindFirst("name")?.Value
+                ?? user.Identity?.Name
+                ?? "Përdorues";
+        }
+    }
+
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+
+
+    private void CloseMenu()
+    {
+        isMenuOpen = false;
+    }
+
+
+    private async Task Logout()
+    {
+        NavigationManager.NavigateTo(
+            "/Account/Logout",
+            forceLoad: true);
+    }
+
+
+    private async void OnLocationChanged(
+        object? sender,
+        LocationChangedEventArgs e)
+    {
+        isMenuOpen = false;
+
+        await LoadAuthenticationState();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+}

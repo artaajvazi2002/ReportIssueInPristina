@@ -1,0 +1,134 @@
+.civic-app {
+    --navy: #142d50;
+    --navy-dark: #0e223d;
+    --green: #299954;
+    --green-dark: #238447;
+    --green-light: #e9f7ef;
+    --blue: #326ac5;
+    --text: #263852;
+    --muted: #65758e;
+    --border: #e6ebf1;
+    --background: #f5f8fb;
+    --white: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+    color: var(--text);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+
+.main-content {
+    flex: 1;
+    width: 100%;
+}
+
+
+/* =========================================
+   FOOTER
+   ========================================= */
+
+.main-footer {
+    min-height: 78px;
+    padding: 15px max(24px, calc((100% - 1395px) / 2));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: #f5f8fb;
+    border-top: 1px solid #e6ebf1;
+}
+
+
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.footer-logo {
+    width: 31px;
+    height: 37px;
+    color: #299954;
+}
+
+
+    .footer-logo svg {
+        width: 100%;
+        height: 100%;
+    }
+
+
+.footer-left strong {
+    display: block;
+    color: #142d50;
+    font-size: 11px;
+}
+
+
+.footer-left small {
+    display: block;
+    color: #748196;
+    font-size: 9px;
+    margin-top: 3px;
+}
+
+
+.footer-center {
+    color: #69788d;
+    font-size: 10px;
+}
+
+
+    .footer-center span {
+        color: #299954;
+    }
+
+
+.footer-right {
+    display: flex;
+    gap: 9px;
+}
+
+
+    .footer-right a {
+        width: 29px;
+        height: 29px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #53657d;
+        background: white;
+        border: 1px solid #dce3ea;
+        border-radius: 50%;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+
+        .footer-right a:hover {
+            color: #299954;
+            border-color: #b9dec6;
+        }
+
+
+/* =========================================
+   RESPONSIVE FOOTER
+   ========================================= */
+
+@media (max-width: 600px) {
+
+    .main-footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 22px 20px;
+    }
+
+
+    .footer-left {
+        justify-content: center;
+    }
+}

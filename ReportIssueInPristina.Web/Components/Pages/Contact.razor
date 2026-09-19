@@ -1,0 +1,504 @@
+﻿
+@page "/contact"
+
+@using System.ComponentModel.DataAnnotations
+@using ReportIssueInPristina.Application.Services
+
+@inject IEmailService EmailService
+
+<PageTitle>Kontakti - Prishtina Civic Helper</PageTitle>
+
+<div class="contact-page">
+
+    <!-- =========================
+         HEADER
+         ========================= -->
+
+    <section class="contact-header">
+
+        <div class="contact-header-content">
+
+            <h1>Na Kontaktoni</h1>
+
+            <div class="green-line"></div>
+
+            <p>
+                Keni pyetje, sugjerime ose keni nevojë për ndihmë?
+                <br />
+                Do të jemi të lumtur të dëgjojmë nga ju.
+            </p>
+
+        </div>
+
+        <div class="contact-header-image">
+
+            <div class="city-background">
+                <div class="building b1"></div>
+                <div class="building b2"></div>
+                <div class="building b3"></div>
+                <div class="building b4"></div>
+                <div class="building b5"></div>
+            </div>
+
+            <div class="message-icon">
+                <div class="envelope">
+                    <span>☰</span>
+                </div>
+            </div>
+
+            <div class="chat-icon">
+                •••
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         MAIN CONTACT AREA
+         ========================= -->
+
+    <section class="contact-content">
+
+        <!-- FORM -->
+
+        <div class="contact-card message-card">
+
+            <h2>Dërgoni një mesazh</h2>
+
+            <EditForm Model="@contactModel"
+                      OnValidSubmit="@SendMessageAsync">
+
+                <DataAnnotationsValidator />
+
+                <div class="form-group">
+
+                    <label>
+                        Emri dhe Mbiemri <span>*</span>
+                    </label>
+
+                    <InputText @bind-Value="contactModel.FullName"
+                               class="form-control"
+                               placeholder="p.sh. Arta Ajvazi" />
+
+                    <ValidationMessage For="@(() => contactModel.FullName)" />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Adresa e emailit <span>*</span>
+                    </label>
+
+                    <InputText @bind-Value="contactModel.Email"
+                               class="form-control"
+                               placeholder="p.sh. emri@email.com"
+                               type="email" />
+
+                    <ValidationMessage For="@(() => contactModel.Email)" />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Subjekti <span>*</span>
+                    </label>
+
+                    <InputSelect @bind-Value="contactModel.Subject"
+                                 class="form-control">
+
+                        <option value="">Zgjidhni subjektin</option>
+                        <option value="Pyetje e përgjithshme">Pyetje e përgjithshme</option>
+                        <option value="Raportim problemi">Raportim problemi</option>
+                        <option value="Mbështetje teknike">Mbështetje teknike</option>
+                        <option value="Sugjerim">Sugjerim</option>
+                        <option value="Tjetër">Tjetër</option>
+
+                    </InputSelect>
+
+                    <ValidationMessage For="@(() => contactModel.Subject)" />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Mesazhi <span>*</span>
+                    </label>
+
+                    <InputTextArea @bind-Value="contactModel.Message"
+                                   class="form-control message-input"
+                                   placeholder="Shkruani mesazhin tuaj këtu..."
+                                   maxlength="1000"
+                                   @oninput="UpdateCharacterCount" />
+
+                    <div class="character-count">
+                        @messageLength / 1000
+                    </div>
+
+                    <ValidationMessage For="@(() => contactModel.Message)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert success-alert">
+                        <span>✓</span>
+                        @successMessage
+                    </div>
+                }
+
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert error-alert">
+                        <span>!</span>
+                        @errorMessage
+                    </div>
+                }
+
+
+                <button type="submit"
+                        class="send-button"
+                        disabled="@isSending">
+
+                    @if (isSending)
+                    {
+                        <span class="spinner"></span>
+                        <span>Duke dërguar...</span>
+                    }
+                    else
+                    {
+                        <span>➤</span>
+                        <span>Dërgo mesazhin</span>
+                    }
+
+                </button>
+
+            </EditForm>
+
+        </div>
+
+
+        <!-- RIGHT SIDE -->
+
+        <div class="contact-right">
+
+            <!-- CONTACT INFORMATION -->
+
+            <div class="contact-card information-card">
+
+                <h2>Informacioni i kontaktit</h2>
+
+                <div class="information-item">
+
+                    <div class="info-icon">
+                        📍
+                    </div>
+
+                    <div>
+                        <strong>Adresa</strong>
+
+                        <p>
+                            Rr. UÇK 2, 10000<br />
+                            Prishtinë, Kosovë
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="information-item">
+
+                    <div class="info-icon">
+                        ✉
+                    </div>
+
+                    <div>
+                        <strong>Email</strong>
+
+                        <p>
+                            info@pristinacivichelper.com
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="information-item">
+
+                    <div class="info-icon">
+                        ☎
+                    </div>
+
+                    <div>
+                        <strong>Telefoni</strong>
+
+                        <p>
+                            +383 44 123 456
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="information-item">
+
+                    <div class="info-icon">
+                        ◷
+                    </div>
+
+                    <div>
+                        <strong>Orari i punës</strong>
+
+                        <p>
+                            E hënë - E premte<br />
+                            08:00 - 16:00
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- SOCIAL MEDIA -->
+
+            <div class="contact-card social-card">
+
+                <h2>Na ndiqni</h2>
+
+                <p>
+                    Qëndroni të informuar dhe na ndiqni
+                    në rrjetet sociale për përditësime.
+                </p>
+
+                <div class="social-links">
+
+                    <a href="#" aria-label="Facebook">f</a>
+                    <a href="#" aria-label="Instagram">◎</a>
+                    <a href="#" aria-label="Twitter">♥</a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         FAQ
+         ========================= -->
+
+    <section class="faq-section">
+
+        <div class="faq-list">
+
+            <h2>Pyetjet më të shpeshta</h2>
+
+
+            <div class="faq-item">
+
+                <button @onclick="() => ToggleFaq(1)">
+
+                    <span>
+                        Si mund të raportoj një problem?
+                    </span>
+
+                    <span class="faq-arrow @(openFaq == 1 ? "open" : "")">
+                        ⌄
+                    </span>
+
+                </button>
+
+                @if (openFaq == 1)
+                {
+                    <div class="faq-answer">
+                        Shkoni te faqja "Raporto problem", plotësoni
+                        informacionin e kërkuar dhe dërgoni raportimin.
+                        Mund të shtoni edhe vendndodhjen dhe detaje
+                        shtesë rreth problemit.
+                    </div>
+                }
+
+            </div>
+
+
+            <div class="faq-item">
+
+                <button @onclick="() => ToggleFaq(2)">
+
+                    <span>
+                        Si mund ta ndjek raportimin tim?
+                    </span>
+
+                    <span class="faq-arrow @(openFaq == 2 ? "open" : "")">
+                        ⌄
+                    </span>
+
+                </button>
+
+                @if (openFaq == 2)
+                {
+                    <div class="faq-answer">
+                        Pas dërgimit të raportimit, mund të shikoni
+                        statusin aktual të tij në seksionin
+                        "Raportimet e mia".
+                    </div>
+                }
+
+            </div>
+
+
+            <div class="faq-item">
+
+                <button @onclick="() => ToggleFaq(3)">
+
+                    <span>
+                        Sa kohë nevojitet për zgjidhjen e një problemi?
+                    </span>
+
+                    <span class="faq-arrow @(openFaq == 3 ? "open" : "")">
+                        ⌄
+                    </span>
+
+                </button>
+
+                @if (openFaq == 3)
+                {
+                    <div class="faq-answer">
+                        Koha e zgjidhjes varet nga lloji dhe
+                        kompleksiteti i problemit të raportuar.
+                        Përparimin mund ta ndiqni përmes statusit
+                        të raportimit tuaj.
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- SUPPORT -->
+
+        <div class="support-card">
+
+            <div class="support-icon">
+                ♧
+            </div>
+
+            <h3>Keni nevojë për më shumë ndihmë?</h3>
+
+            <p>
+                Nëse keni nevojë për ndihmë të menjëhershme,
+                ekipi ynë është këtu për t'ju ndihmuar.
+            </p>
+
+            <a href="mailto:info@pristinacivichelper.com">
+                Kontaktoni mbështetjen
+            </a>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+@code {
+
+    private ContactModel contactModel = new();
+
+    private bool isSending;
+
+    private string? successMessage;
+
+    private string? errorMessage;
+
+    private int messageLength;
+
+    private int openFaq;
+
+
+    private void UpdateCharacterCount(ChangeEventArgs e)
+    {
+        messageLength = e.Value?.ToString()?.Length ?? 0;
+    }
+
+
+    private void ToggleFaq(int faqNumber)
+    {
+        openFaq = openFaq == faqNumber ? 0 : faqNumber;
+    }
+
+
+    private async Task SendMessageAsync()
+    {
+        successMessage = null;
+        errorMessage = null;
+
+        isSending = true;
+
+        try
+        {
+            await EmailService.SendContactMessageAsync(
+                contactModel.FullName,
+                contactModel.Email,
+                contactModel.Subject,
+                contactModel.Message
+            );
+
+            successMessage =
+                "Mesazhi juaj u dërgua me sukses. Do t'ju përgjigjemi sa më shpejt.";
+
+            contactModel = new ContactModel();
+
+            messageLength = 0;
+        }
+        catch
+        {
+            errorMessage =
+                "Ndodhi një problem gjatë dërgimit të mesazhit. Ju lutemi provoni përsëri më vonë.";
+        }
+        finally
+        {
+            isSending = false;
+        }
+    }
+
+
+    private class ContactModel
+    {
+        [Required(ErrorMessage = "Ju lutemi shkruani emrin dhe mbiemrin.")]
+        [StringLength(100)]
+        public string FullName { get; set; } = string.Empty;
+
+
+        [Required(ErrorMessage = "Ju lutemi shkruani adresën e emailit.")]
+        [EmailAddress(ErrorMessage = "Ju lutemi shkruani një adresë të vlefshme emaili.")]
+        public string Email { get; set; } = string.Empty;
+
+
+        [Required(ErrorMessage = "Ju lutemi zgjidhni subjektin.")]
+        public string Subject { get; set; } = string.Empty;
+
+
+        [Required(ErrorMessage = "Ju lutemi shkruani mesazhin tuaj.")]
+        [StringLength(
+            1000,
+            MinimumLength = 5,
+            ErrorMessage = "Mesazhi duhet të përmbajë nga 5 deri në 1000 karaktere."
+        )]
+        public string Message { get; set; } = string.Empty;
+    }
+}
+

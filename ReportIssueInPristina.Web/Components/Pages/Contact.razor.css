@@ -1,0 +1,1023 @@
+﻿/* =========================================================
+   CONTACT PAGE
+   ========================================================= */
+
+.contact-page {
+    width: 100%;
+    background: #ffffff;
+    color: #10264a;
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   CONTACT HEADER
+   ========================================================= */
+
+.contact-header {
+    width: 100%;
+    min-height: 340px;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #10264a 0%, #17345f 100%);
+    color: #ffffff;
+    overflow: hidden;
+}
+
+.contact-header-content {
+    width: 50%;
+    padding: 60px 5% 60px 8%;
+    box-sizing: border-box;
+}
+
+    .contact-header-content h1 {
+        margin: 0;
+        font-size: 44px;
+        line-height: 1.15;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .contact-header-content .green-line {
+        width: 55px;
+        height: 4px;
+        margin: 20px 0 20px;
+        border-radius: 5px;
+        background: #45c98a;
+    }
+
+    .contact-header-content p {
+        max-width: 500px;
+        margin: 0;
+        font-size: 17px;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.88);
+    }
+
+
+/* =========================================================
+   CONTACT HEADER ILLUSTRATION
+   ========================================================= */
+
+.contact-header-image {
+    position: relative;
+    width: 50%;
+    height: 340px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   CITY BACKGROUND
+   ========================================================= */
+
+.city-background {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 190px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0.95;
+}
+
+.building {
+    position: relative;
+    width: 62px;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 3px 3px 0 0;
+}
+
+    .building::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        top: 16px;
+        height: 7px;
+        border-radius: 2px;
+        background: rgba(69, 201, 138, 0.75);
+        box-shadow: 0 22px 0 rgba(255, 255, 255, 0.28), 0 44px 0 rgba(255, 255, 255, 0.28), 0 66px 0 rgba(255, 255, 255, 0.28), 0 88px 0 rgba(255, 255, 255, 0.28);
+    }
+
+.b1 {
+    height: 105px;
+}
+
+.b2 {
+    height: 155px;
+    width: 72px;
+}
+
+.b3 {
+    height: 125px;
+    width: 68px;
+}
+
+.b4 {
+    height: 180px;
+    width: 75px;
+}
+
+.b5 {
+    height: 115px;
+}
+
+
+/* =========================================================
+   MESSAGE ILLUSTRATION
+   ========================================================= */
+
+.message-icon {
+    position: absolute;
+    top: 62px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+.envelope {
+    position: relative;
+    width: 130px;
+    height: 92px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border-radius: 13px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+    transform: rotate(-3deg);
+}
+
+    .envelope::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+        border-left: 65px solid transparent;
+        border-right: 65px solid transparent;
+        border-top: 48px solid #dce9f5;
+    }
+
+    .envelope::after {
+        content: "";
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        height: 42px;
+        background: #eef4f9;
+        clip-path: polygon(0 100%, 50% 35%, 100% 100%);
+    }
+
+    .envelope span {
+        position: relative;
+        z-index: 2;
+        color: #32b979;
+        font-size: 24px;
+        font-weight: 700;
+        margin-top: 3px;
+    }
+
+
+/* =========================================================
+   CHAT ICON
+   ========================================================= */
+
+.chat-icon {
+    position: absolute;
+    z-index: 4;
+    top: 145px;
+    right: 19%;
+    width: 62px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background: #45c98a;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.16);
+}
+
+    .chat-icon::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        left: 14px;
+        width: 0;
+        height: 0;
+        border-top: 10px solid #45c98a;
+        border-right: 10px solid transparent;
+    }
+
+
+/* =========================================================
+   MAIN CONTACT CONTENT
+   ========================================================= */
+
+.contact-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 65px 35px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 30px;
+    align-items: start;
+}
+
+
+/* =========================================================
+   CONTACT CARD
+   ========================================================= */
+
+.contact-card {
+    background: #ffffff;
+    border: 1px solid #e5eaf0;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(16, 38, 74, 0.07);
+}
+
+
+/* =========================================================
+   MESSAGE CARD
+   ========================================================= */
+
+.message-card {
+    padding: 32px;
+}
+
+    .message-card h2 {
+        margin: 0 0 27px;
+        font-size: 25px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #10264a;
+    }
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #10264a;
+    }
+
+        .form-group label span {
+            color: #e05b5b;
+        }
+
+.form-control {
+    width: 100%;
+    min-height: 47px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+    border: 1px solid #d8e0e9;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #10264a;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .form-control::placeholder {
+        color: #9aa7b6;
+    }
+
+    .form-control:focus {
+        border-color: #45c98a;
+        box-shadow: 0 0 0 3px rgba(69, 201, 138, 0.12);
+    }
+
+textarea.form-control {
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+select.form-control {
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   VALIDATION
+   ========================================================= */
+
+.validation-message {
+    display: block;
+    margin-top: 6px;
+    color: #d9534f;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   CHARACTER COUNT
+   ========================================================= */
+
+.character-count {
+    margin-top: 6px;
+    text-align: right;
+    font-size: 12px;
+    color: #8a98a8;
+}
+
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 13px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.success-alert {
+    background: #e8f8f0;
+    border: 1px solid #bcebd4;
+    color: #237a55;
+}
+
+.error-alert {
+    background: #fff0f0;
+    border: 1px solid #f1c4c4;
+    color: #b33b3b;
+}
+
+.alert span {
+    flex-shrink: 0;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   SEND BUTTON
+   ========================================================= */
+
+.send-button {
+    width: 100%;
+    min-height: 49px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: none;
+    border-radius: 8px;
+    background: #32b979;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.25s ease;
+}
+
+    .send-button:hover {
+        background: #279c66;
+        transform: translateY(-1px);
+    }
+
+    .send-button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+
+/* =========================================================
+   SPINNER
+   ========================================================= */
+
+.spinner {
+    width: 17px;
+    height: 17px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: contact-spin 0.7s linear infinite;
+}
+
+@keyframes contact-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   RIGHT SIDE
+   ========================================================= */
+
+.contact-right {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+
+/* =========================================================
+   INFORMATION CARD
+   ========================================================= */
+
+.information-card {
+    padding: 29px;
+}
+
+    .information-card h2 {
+        margin: 0 0 25px;
+        font-size: 23px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #10264a;
+    }
+
+.information-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+    .information-item:last-child {
+        margin-bottom: 0;
+    }
+
+.info-icon {
+    flex-shrink: 0;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    background: #e4f8ee;
+    color: #32b979;
+    font-size: 20px;
+}
+
+.information-item strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #10264a;
+}
+
+.information-item p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #66768a;
+}
+
+
+/* =========================================================
+   SOCIAL CARD
+   ========================================================= */
+
+.social-card {
+    padding: 26px 29px;
+    background: #10264a;
+    border-color: #10264a;
+    color: #ffffff;
+}
+
+    .social-card h2 {
+        margin: 0 0 8px;
+        font-size: 21px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .social-card p {
+        margin: 0 0 19px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+.social-links {
+    display: flex;
+    gap: 10px;
+}
+
+    .social-links a {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 600;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+        .social-links a:hover {
+            background: #32b979;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+
+/* =========================================================
+   FAQ SECTION
+   ========================================================= */
+
+.faq-section {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 40px;
+    padding: 65px max(35px, calc((100% - 1200px) / 2));
+    box-sizing: border-box;
+    background: #f7f9fc;
+}
+
+.faq-list h2 {
+    margin: 0 0 28px;
+    font-size: 27px;
+    line-height: 1.3;
+    font-weight: 700;
+    color: #10264a;
+}
+
+.faq-item {
+    margin-bottom: 12px;
+    background: #ffffff;
+    border: 1px solid #e1e7ee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+    .faq-item button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 17px 20px;
+        border: none;
+        background: #ffffff;
+        color: #10264a;
+        text-align: left;
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+        .faq-item button:hover {
+            background: #f9fbfd;
+        }
+
+.faq-arrow {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+    color: #32b979;
+    transition: transform 0.25s ease;
+}
+
+    .faq-arrow.open {
+        transform: rotate(180deg);
+    }
+
+.faq-answer {
+    padding: 0 20px 18px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #66768a;
+}
+
+
+/* =========================================================
+   SUPPORT CARD
+   ========================================================= */
+
+.support-card {
+    align-self: start;
+    padding: 32px 28px;
+    border-radius: 16px;
+    background: linear-gradient( 135deg, #e8f8f0 0%, #dff4eb 100% );
+    text-align: center;
+}
+
+.support-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #32b979;
+    font-size: 26px;
+    box-shadow: 0 5px 15px rgba(16, 38, 74, 0.08);
+}
+
+.support-card h3 {
+    margin: 0 0 10px;
+    font-size: 19px;
+    line-height: 1.4;
+    font-weight: 700;
+    color: #10264a;
+}
+
+.support-card p {
+    margin: 0 0 20px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #53677e;
+}
+
+.support-card a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 18px;
+    border-radius: 8px;
+    background: #32b979;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.25s ease, transform 0.25s ease;
+}
+
+    .support-card a:hover {
+        background: #279c66;
+        color: #ffffff;
+        transform: translateY(-2px);
+    }
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .contact-header {
+        min-height: 320px;
+    }
+
+    .contact-header-content {
+        padding-left: 6%;
+    }
+
+        .contact-header-content h1 {
+            font-size: 38px;
+        }
+
+    .contact-header-image {
+        height: 320px;
+    }
+
+    .contact-content {
+        grid-template-columns: 1fr;
+        padding: 55px 6%;
+    }
+
+    .contact-right {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .social-card {
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    .faq-section {
+        grid-template-columns: 1fr;
+        padding: 55px 6%;
+    }
+
+    .support-card {
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    /* Header */
+
+    .contact-header {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .contact-header-content {
+        width: 100%;
+        padding: 45px 22px 20px;
+        text-align: center;
+    }
+
+        .contact-header-content h1 {
+            font-size: 34px;
+        }
+
+        .contact-header-content .green-line {
+            margin: 18px auto;
+        }
+
+        .contact-header-content p {
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+    .contact-header-image {
+        width: 100%;
+        height: 240px;
+    }
+
+    .city-background {
+        height: 145px;
+        gap: 7px;
+    }
+
+    .building {
+        width: 43px;
+    }
+
+    .b2 {
+        width: 50px;
+    }
+
+    .b3 {
+        width: 46px;
+    }
+
+    .b4 {
+        width: 52px;
+    }
+
+    .b5 {
+        width: 43px;
+    }
+
+    .building::before {
+        left: 7px;
+        right: 7px;
+        top: 12px;
+        height: 5px;
+        box-shadow: 0 18px 0 rgba(255, 255, 255, 0.28), 0 36px 0 rgba(255, 255, 255, 0.28), 0 54px 0 rgba(255, 255, 255, 0.28), 0 72px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    .b1 {
+        height: 80px;
+    }
+
+    .b2 {
+        height: 120px;
+    }
+
+    .b3 {
+        height: 95px;
+    }
+
+    .b4 {
+        height: 140px;
+    }
+
+    .b5 {
+        height: 88px;
+    }
+
+    .message-icon {
+        top: 38px;
+    }
+
+    .envelope {
+        width: 105px;
+        height: 75px;
+    }
+
+        .envelope::before {
+            border-left-width: 52px;
+            border-right-width: 52px;
+            border-top-width: 39px;
+        }
+
+        .envelope span {
+            font-size: 20px;
+        }
+
+    .chat-icon {
+        top: 105px;
+        right: 18%;
+        width: 52px;
+        height: 41px;
+        font-size: 17px;
+    }
+
+
+    /* Main */
+
+    .contact-content {
+        display: flex;
+        flex-direction: column;
+        padding: 45px 18px;
+        gap: 20px;
+    }
+
+    .message-card {
+        padding: 25px 20px;
+    }
+
+        .message-card h2 {
+            font-size: 22px;
+            margin-bottom: 23px;
+        }
+
+    .form-group {
+        margin-bottom: 17px;
+    }
+
+        .form-group label {
+            font-size: 14px;
+        }
+
+    .form-control {
+        font-size: 14px;
+    }
+
+    textarea.form-control {
+        min-height: 125px;
+    }
+
+    .contact-right {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .information-card {
+        padding: 24px 20px;
+    }
+
+        .information-card h2 {
+            font-size: 21px;
+        }
+
+    .information-item {
+        gap: 12px;
+        margin-bottom: 19px;
+    }
+
+    .info-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .social-card {
+        padding: 24px 20px;
+    }
+
+
+    /* FAQ */
+
+    .faq-section {
+        display: flex;
+        flex-direction: column;
+        padding: 45px 18px;
+        gap: 25px;
+    }
+
+    .faq-list h2 {
+        font-size: 23px;
+        margin-bottom: 23px;
+    }
+
+    .faq-item button {
+        padding: 15px 16px;
+        font-size: 14px;
+    }
+
+    .faq-answer {
+        padding: 0 16px 17px;
+        font-size: 14px;
+    }
+
+    .support-card {
+        padding: 28px 20px;
+    }
+
+        .support-card h3 {
+            font-size: 18px;
+        }
+
+        .support-card p {
+            font-size: 14px;
+        }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 400px) {
+
+    .contact-header-content {
+        padding-left: 17px;
+        padding-right: 17px;
+    }
+
+        .contact-header-content h1 {
+            font-size: 30px;
+        }
+
+        .contact-header-content p {
+            font-size: 14px;
+        }
+
+    .contact-header-image {
+        height: 215px;
+    }
+
+    .contact-content {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .message-card {
+        padding: 22px 16px;
+    }
+
+        .message-card h2 {
+            font-size: 21px;
+        }
+
+    .information-card {
+        padding: 22px 16px;
+    }
+
+    .social-card {
+        padding: 22px 17px;
+    }
+
+    .faq-section {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .faq-list h2 {
+        font-size: 21px;
+    }
+
+    .support-card {
+        padding-left: 17px;
+        padding-right: 17px;
+    }
+}

@@ -1,0 +1,86 @@
+﻿@page "/welcome"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+<PageTitle>Mirë se vini - Prishtina Civic Helper</PageTitle>
+
+<div class="welcome-page">
+
+    <div class="welcome-card">
+
+        <div class="welcome-logo">
+
+            <svg viewBox="0 0 50 58"
+                 fill="none"
+                 aria-hidden="true">
+
+                <path d="M25 3L43 10V25C43 38 34 49 25 55C16 49 7 38 7 25V10L25 3Z"
+                      stroke="currentColor"
+                      stroke-width="3" />
+
+                <path d="M25 14C20.5 14 17 17.5 17 22C17 28 25 35 25 35C25 35 33 28 33 22C33 17.5 29.5 14 25 14Z"
+                      stroke="currentColor"
+                      stroke-width="2.5" />
+
+                <circle cx="25"
+                        cy="22"
+                        r="2.5"
+                        fill="currentColor" />
+
+            </svg>
+
+        </div>
+
+
+        <span class="welcome-kicker">
+            PRISHTINA CIVIC HELPER
+        </span>
+
+
+        <h1>
+            Mirë se vini! 👋
+        </h1>
+
+
+        <p class="welcome-description">
+            Bashkohuni me komunitetin dhe ndihmoni në
+            përmirësimin e Prishtinës duke raportuar
+            problemet urbane.
+        </p>
+
+
+        <div class="welcome-actions">
+
+            <a href="/Account/Login"
+               class="welcome-login-btn">
+
+                Hyr në llogari
+                <span>→</span>
+
+            </a>
+
+
+            <a href="/Account/Register"
+               class="welcome-register-btn">
+
+                Krijo llogari
+
+            </a>
+
+        </div>
+
+
+        <div class="welcome-info">
+
+            <span>✓</span>
+
+            <p>
+                Raporto probleme, ndiq statusin dhe
+                kontribuo për qytetin tënd.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>

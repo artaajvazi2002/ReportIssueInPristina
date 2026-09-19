@@ -1,0 +1,526 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
+@using ReportIssueInPristina.Application.Services
+@using ReportIssueInPristina.Domain.Models
+
+@inject IReportService ReportService
+
+<PageTitle>Prishtina Civic Helper</PageTitle>
+
+<div class="civic-home">
+
+
+    <!-- =========================
+         HERO
+         ========================= -->
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <div class="hero-text">
+
+                <div class="hero-eyebrow">
+                    <span class="eyebrow-dot"></span>
+                    Zëri i qytetarëve
+                </div>
+
+                <h1>
+                    Së bashku për një
+                    <span>Prishtinë më të mirë.</span>
+                </h1>
+
+                <div class="green-line"></div>
+
+                <p>
+                    Raporto problemet urbane në lagjen tënde,
+                    ndiq progresin e tyre dhe kontribuo në një qytet
+                    më të pastër, më të sigurt dhe më funksional.
+                </p>
+
+                <div class="hero-buttons">
+
+                    <a href="/report-issue" class="report-btn">
+                        <span class="plus-icon">+</span>
+                        Raporto një problem
+                    </a>
+
+                    <a href="/issues" class="view-btn">
+                        <span class="list-icon">☷</span>
+                        Shiko raportimet
+                    </a>
+
+                </div>
+
+                <div class="hero-trust">
+                    <div class="trust-item">
+                        <span class="trust-check">✓</span>
+                        Raportim i thjeshtë
+                    </div>
+
+                    <div class="trust-item">
+                        <span class="trust-check">✓</span>
+                        Ndjekje e statusit
+                    </div>
+
+                    <div class="trust-item">
+                        <span class="trust-check">✓</span>
+                        Për komunitetin
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="hero-image">
+
+                <img src="images/prishtina-hero.jpg"
+                     alt="Pamje e Prishtinës" />
+
+                <div class="hero-image-overlay"></div>
+
+                <div class="hero-floating-card">
+
+                    <div class="floating-icon">✓</div>
+
+                    <div>
+                        <strong>Raportimi yt ka rëndësi</strong>
+                        <span>Ndihmo në përmirësimin e qytetit.</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         PROCESS
+         ========================= -->
+    <section class="process-wrapper">
+
+        <div class="process-bar">
+
+            <div class="process-item">
+
+                <div class="process-icon blue">
+                    <span>+</span>
+                </div>
+
+                <div>
+                    <span class="process-number">01</span>
+                    <h3>Raporto</h3>
+                    <p>Na trego për problemin që ke vërejtur.</p>
+                </div>
+
+            </div>
+
+            <div class="process-divider"></div>
+
+            <div class="process-item">
+
+                <div class="process-icon green">
+                    <span>◉</span>
+                </div>
+
+                <div>
+                    <span class="process-number">02</span>
+                    <h3>Shqyrtohet</h3>
+                    <p>Raportimi regjistrohet dhe shqyrtohet.</p>
+                </div>
+
+            </div>
+
+            <div class="process-divider"></div>
+
+            <div class="process-item">
+
+                <div class="process-icon yellow">
+                    <span>⚙</span>
+                </div>
+
+                <div>
+                    <span class="process-number">03</span>
+                    <h3>Në proces</h3>
+                    <p>Problemi kalon në fazën e trajtimit.</p>
+                </div>
+
+            </div>
+
+            <div class="process-divider"></div>
+
+            <div class="process-item">
+
+                <div class="process-icon green">
+                    <span>✓</span>
+                </div>
+
+                <div>
+                    <span class="process-number">04</span>
+                    <h3>Zgjidhet</h3>
+                    <p>Qytetari mund të ndjekë statusin.</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         MAIN DASHBOARD
+         ========================= -->
+    <section class="dashboard-section">
+
+        <!-- RECENT REPORTS -->
+        <div class="recent-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="section-kicker">KOMUNITETI</span>
+
+                    <h2>
+                        <span class="heading-marker"></span>
+                        Raportimet e fundit
+                    </h2>
+                </div>
+
+                <a href="/issues" class="view-all-link">
+                    Shiko të gjitha
+                    <span>→</span>
+                </a>
+
+            </div>
+
+
+            @if (isLoading)
+            {
+                <div class="reports-grid">
+
+                    @for (int i = 0; i < 4; i++)
+                    {
+                        <div class="report-card skeleton-card">
+
+                            <div class="skeleton-image"></div>
+
+                            <div class="report-body">
+                                <div class="skeleton-line large"></div>
+                                <div class="skeleton-line"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else if (recentReports.Count == 0)
+            {
+                <div class="empty-reports">
+
+                    <div class="empty-icon">○</div>
+
+                    <h3>Nuk ka ende raportime</h3>
+
+                    <p>
+                        Bëhu i pari që raporton një problem në Prishtinë.
+                    </p>
+
+                    <a href="/report-issue" class="empty-button">
+                        Raporto problemin e parë
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <div class="reports-grid">
+
+                    @foreach (var issue in recentReports)
+                    {
+                        <a href="@($"/issues/{issue.Id}")" class="report-card">
+
+                            <div class="report-image">
+
+                                @if (!string.IsNullOrWhiteSpace(issue.ImageUrl))
+                                {
+                                    <img src="@issue.ImageUrl"
+                                         alt="@issue.Title"
+                                         loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="report-image-placeholder">
+                                        <span>⌖</span>
+                                    </div>
+                                }
+
+                                <span class="status @GetStatusClass(issue.Status)">
+                                    @GetStatusText(issue.Status)
+                                </span>
+
+                            </div>
+
+                            <div class="report-body">
+
+                                <div class="report-category">
+                                    @(issue.Category?.Name ?? "Pa kategori")
+                                </div>
+
+                                <div class="report-title">
+                                    @issue.Title
+                                </div>
+
+                                <div class="report-info">
+                                    <span>⌖</span>
+                                    <span>@issue.Location</span>
+                                </div>
+
+                                <div class="report-info">
+                                    <span>◷</span>
+                                    <span>@issue.DateCreated.ToString("dd MMM yyyy")</span>
+                                </div>
+
+                            </div>
+
+                        </a>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- CITY OVERVIEW -->
+        <aside class="overview-card">
+
+            <div class="overview-header">
+
+                <div>
+                    <span class="section-kicker">PRISHTINA</span>
+
+                    <h2>
+                        <span class="heading-marker"></span>
+                        Gjendja e qytetit
+                    </h2>
+                </div>
+
+                <div class="overview-live">
+                    <span></span>
+                    Live
+                </div>
+
+            </div>
+
+
+            <div class="stats-list">
+
+                <div class="stat-row">
+
+                    <div class="stat-icon total">
+                        ▣
+                    </div>
+
+                    <div class="stat-content">
+                        <strong>@totalReports</strong>
+                        <p>Probleme të raportuara</p>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-row">
+
+                    <div class="stat-icon solved-stat">
+                        ✓
+                    </div>
+
+                    <div class="stat-content">
+                        <strong>@solvedReports</strong>
+                        <p>Probleme të zgjidhura</p>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-row">
+
+                    <div class="stat-icon progress-stat">
+                        ◷
+                    </div>
+
+                    <div class="stat-content">
+                        <strong>@inProgressReports</strong>
+                        <p>Në proces</p>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-row">
+
+                    <div class="stat-icon pending-stat">
+                        ◌
+                    </div>
+
+                    <div class="stat-content">
+                        <strong>@pendingReports</strong>
+                        <p>Në pritje</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="overview-footer">
+
+                <div class="overview-total">
+
+                    <div class="mini-progress">
+                        <div style="width:@SolvedPercentage%"></div>
+                    </div>
+
+                    <span>
+                        @SolvedPercentage% të raportimeve janë zgjidhur
+                    </span>
+
+                </div>
+
+                <a href="/issues" class="statistics-btn">
+                    Shiko të gjitha raportimet
+                    <span>→</span>
+                </a>
+
+            </div>
+
+        </aside>
+
+    </section>
+
+
+    <!-- =========================
+         CTA
+         ========================= -->
+    <section class="cta-section">
+
+        <div class="cta-content">
+
+            <div class="cta-icon">
+                <span>+</span>
+            </div>
+
+            <div class="cta-text">
+                <span class="cta-kicker">KE VËREJTUR DIÇKA?</span>
+
+                <h2>
+                    Një raportim i vogël mund të bëjë
+                    <span>një ndryshim të madh.</span>
+                </h2>
+
+                <p>
+                    Na ndihmo ta bëjmë Prishtinën më të mirë për të gjithë.
+                </p>
+            </div>
+
+            <a href="/report-issue" class="cta-button">
+                Raporto një problem
+                <span>→</span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    
+
+</div>
+
+
+@code {
+
+    private List<Issue> recentReports = new();
+
+    private int totalReports;
+    private int solvedReports;
+    private int inProgressReports;
+    private int pendingReports;
+
+    private bool isLoading = true;
+    private bool isMenuOpen;
+
+    private int SolvedPercentage =>
+        totalReports == 0
+            ? 0
+            : (int)Math.Round((double)solvedReports / totalReports * 100);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            isLoading = true;
+
+            var reports = await ReportService.GetAllReportsAsync();
+
+            totalReports = reports.Count;
+
+            solvedReports = reports.Count(i =>
+                string.Equals(i.Status, "Zgjidhur", StringComparison.OrdinalIgnoreCase));
+
+            inProgressReports = reports.Count(i =>
+                string.Equals(i.Status, "Në proces", StringComparison.OrdinalIgnoreCase));
+
+            pendingReports = reports.Count(i =>
+                string.Equals(i.Status, "Në pritje", StringComparison.OrdinalIgnoreCase));
+
+            recentReports = reports
+                .OrderByDescending(i => i.DateCreated)
+                .Take(4)
+                .ToList();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetStatusClass(string? status)
+    {
+        return status?.Trim().ToLowerInvariant() switch
+        {
+            "në pritje" => "pending",
+            "në proces" => "progress",
+            "zgjidhur" => "solved",
+            _ => "pending"
+        };
+    }
+
+    private string GetStatusText(string? status)
+    {
+        return string.IsNullOrWhiteSpace(status)
+            ? "Në pritje"
+            : status;
+    }
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+
+    private void CloseMenu()
+    {
+        isMenuOpen = false;
+    }
+}

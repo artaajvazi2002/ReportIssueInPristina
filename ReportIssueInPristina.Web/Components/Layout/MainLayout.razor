@@ -1,0 +1,103 @@
+﻿@inherits LayoutComponentBase
+
+<div class="civic-app">
+
+    <!-- =========================
+         SHARED NAVIGATION
+         ========================= -->
+
+    <NavMenu />
+
+
+    <!-- =========================
+         PAGE CONTENT
+         ========================= -->
+
+    <main class="main-content">
+
+        @Body
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+         ========================= -->
+
+    <footer class="main-footer">
+
+        <div class="footer-left">
+
+            <div class="footer-logo">
+
+                <svg viewBox="0 0 50 58"
+                     fill="none"
+                     aria-hidden="true">
+
+                    <path d="M25 3L43 10V25C43 38 34 49 25 55C16 49 7 38 7 25V10L25 3Z"
+                          stroke="currentColor"
+                          stroke-width="3" />
+
+                    <circle cx="25"
+                            cy="22"
+                            r="5"
+                            stroke="currentColor"
+                            stroke-width="2" />
+
+                </svg>
+
+            </div>
+
+
+            <div>
+
+                <strong>Prishtina Civic Helper</strong>
+
+                <small>© 2026 Prishtina Civic Helper</small>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-center">
+
+            Së bashku për një Prishtinë më të mirë.
+
+            <span>♥</span>
+
+        </div>
+
+
+        <div class="footer-right">
+
+            <a href="/about"
+               aria-label="Rreth projektit">
+                ?
+            </a>
+
+            <a href="/contact"
+               aria-label="Kontakt">
+                ✉
+            </a>
+
+        </div>
+
+    </footer>
+
+</div>
+
+
+<div id="blazor-error-ui" data-nosnippet>
+
+    An unhandled error has occurred.
+
+    <a href="." class="reload">
+        Reload
+    </a>
+
+    <span class="dismiss">
+        🗙
+    </span>
+
+</div>

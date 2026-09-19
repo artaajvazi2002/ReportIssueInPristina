@@ -1,0 +1,619 @@
+﻿/* =========================================================
+   ABOUT PAGE
+   ========================================================= */
+
+.about-page {
+    width: 100%;
+    background: #ffffff;
+    color: #10264a;
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   HERO SECTION
+   ========================================================= */
+
+.about-hero {
+    display: flex;
+    width: 100%;
+    min-height: 360px;
+    background: linear-gradient(135deg, #10264a 0%, #17345f 100%);
+    color: #ffffff;
+}
+
+.about-hero-content {
+    width: 42%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 55px 50px;
+}
+
+    .about-hero-content h1 {
+        margin: 0;
+        font-size: 42px;
+        line-height: 1.15;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+        .about-hero-content h1 span {
+            display: block;
+            margin-top: 5px;
+            font-weight: 400;
+        }
+
+        .about-hero-content h1 strong {
+            font-weight: 700;
+            color: #45c98a;
+        }
+
+.green-line {
+    width: 55px;
+    height: 4px;
+    margin: 22px 0 20px;
+    border-radius: 5px;
+    background: #45c98a;
+}
+
+.about-hero-content p {
+    max-width: 500px;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.about-hero-image {
+    width: 58%;
+    min-height: 360px;
+    overflow: hidden;
+}
+
+    .about-hero-image img {
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+        object-fit: cover;
+        display: block;
+    }
+
+
+/* =========================================================
+   SECTION TITLE
+   ========================================================= */
+
+.section-title {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+    .section-title h2 {
+        margin: 0;
+        font-size: 28px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #10264a;
+    }
+
+.small-line {
+    width: 42px;
+    height: 3px;
+    margin: 12px auto 0;
+    border-radius: 5px;
+    background: #45c98a;
+}
+
+
+/* =========================================================
+   MISSION SECTION
+   ========================================================= */
+
+.mission-section {
+    padding: 65px 7%;
+    background: #ffffff;
+}
+
+.mission-description {
+    max-width: 850px;
+    margin: 0 auto 45px;
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.75;
+    color: #5f6f84;
+}
+
+.mission-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.mission-card {
+    padding: 25px 20px 22px;
+    min-height: 205px;
+    text-align: center;
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px rgba(16, 38, 74, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+    .mission-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 28px rgba(16, 38, 74, 0.11);
+    }
+
+.mission-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+    .mission-icon.green {
+        background: #e4f8ee;
+        color: #32b979;
+    }
+
+    .mission-icon.blue {
+        background: #e7f0fb;
+        color: #3679c8;
+    }
+
+    .mission-icon.orange {
+        background: #fff0df;
+        color: #e99536;
+    }
+
+    .mission-icon.purple {
+        background: #f0e9fb;
+        color: #8b61c9;
+    }
+
+.mission-card h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 700;
+    color: #10264a;
+}
+
+.mission-card p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #66768a;
+}
+
+
+/* =========================================================
+   HOW IT WORKS SECTION
+   ========================================================= */
+
+.how-section {
+    padding: 65px 7%;
+    background: #f7f9fc;
+}
+
+.steps {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.step {
+    flex: 1;
+    text-align: center;
+    min-width: 150px;
+}
+
+.step-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+    .step-icon.green {
+        background: #e4f8ee;
+        color: #32b979;
+    }
+
+    .step-icon.blue {
+        background: #e7f0fb;
+        color: #3679c8;
+    }
+
+    .step-icon.orange {
+        background: #fff0df;
+        color: #e99536;
+    }
+
+    .step-icon.purple {
+        background: #f0e9fb;
+        color: #8b61c9;
+    }
+
+.step h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+    line-height: 1.4;
+    font-weight: 700;
+    color: #10264a;
+}
+
+.step p {
+    max-width: 180px;
+    margin: 0 auto;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #66768a;
+}
+
+.step-arrow {
+    flex-shrink: 0;
+    font-size: 32px;
+    color: #b7c1ce;
+    font-weight: 300;
+}
+
+
+/* =========================================================
+   CTA SECTION
+   ========================================================= */
+
+.about-cta {
+    display: flex;
+    width: 100%;
+    min-height: 290px;
+    background: linear-gradient(135deg, #e8f8f0 0%, #dff4eb 100%);
+}
+
+.cta-image {
+    width: 45%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+}
+
+    .cta-image img {
+        width: 100%;
+        max-width: 520px;
+        height: auto;
+        display: block;
+    }
+
+.cta-content {
+    width: 55%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 45px 7%;
+}
+
+    .cta-content h2 {
+        margin: 0 0 15px;
+        font-size: 27px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #10264a;
+    }
+
+    .cta-content p {
+        max-width: 600px;
+        margin: 0 0 25px;
+        font-size: 15px;
+        line-height: 1.7;
+        color: #53677e;
+    }
+
+.cta-button {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: #32b979;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    transition: background 0.25s ease, transform 0.25s ease;
+}
+
+    .cta-button:hover {
+        background: #279c66;
+        color: #ffffff;
+        transform: translateY(-2px);
+    }
+
+    .cta-button span {
+        font-size: 20px;
+        line-height: 1;
+    }
+
+
+/* =========================================================
+   TABLET - 900px
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .about-hero {
+        flex-direction: column;
+    }
+
+    .about-hero-content {
+        width: 100%;
+        padding: 50px 7%;
+        order: 1;
+    }
+
+    .about-hero-image {
+        width: 100%;
+        min-height: 300px;
+        max-height: 350px;
+        order: 2;
+    }
+
+        .about-hero-image img {
+            min-height: 300px;
+        }
+
+    .mission-section,
+    .how-section {
+        padding: 55px 6%;
+    }
+
+    .mission-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .steps {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 30px 15px;
+    }
+
+    .step {
+        flex: 0 0 calc(50% - 30px);
+    }
+
+    .step-arrow {
+        display: none;
+    }
+
+    .about-cta {
+        min-height: auto;
+    }
+
+    .cta-content {
+        padding: 40px 6%;
+    }
+}
+
+
+/* =========================================================
+   MOBILE - 600px
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .about-hero-content {
+        padding: 42px 24px;
+    }
+
+        .about-hero-content h1 {
+            font-size: 34px;
+        }
+
+        .about-hero-content p {
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+    .green-line {
+        margin: 18px 0;
+    }
+
+    .about-hero-image {
+        min-height: 240px;
+        max-height: 280px;
+    }
+
+        .about-hero-image img {
+            min-height: 240px;
+        }
+
+
+    /* Mission */
+
+    .mission-section {
+        padding: 50px 20px;
+    }
+
+    .section-title {
+        margin-bottom: 28px;
+    }
+
+        .section-title h2 {
+            font-size: 24px;
+        }
+
+    .mission-description {
+        font-size: 15px;
+        line-height: 1.7;
+        margin-bottom: 32px;
+    }
+
+    .mission-cards {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .mission-card {
+        min-height: auto;
+        padding: 24px 20px;
+    }
+
+        .mission-card h3 {
+            font-size: 18px;
+        }
+
+        .mission-card p {
+            font-size: 14px;
+        }
+
+
+    /* How It Works */
+
+    .how-section {
+        padding: 50px 20px;
+    }
+
+    .steps {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .step {
+        width: 100%;
+        flex: none;
+    }
+
+        .step h3 {
+            font-size: 17px;
+        }
+
+        .step p {
+            font-size: 14px;
+            max-width: 280px;
+        }
+
+
+    /* CTA */
+
+    .about-cta {
+        flex-direction: column;
+    }
+
+    .cta-image {
+        width: 100%;
+        order: 2;
+        padding-top: 20px;
+    }
+
+        .cta-image img {
+            max-width: 380px;
+        }
+
+    .cta-content {
+        width: 100%;
+        order: 1;
+        padding: 45px 24px 20px;
+        text-align: center;
+        align-items: center;
+    }
+
+        .cta-content h2 {
+            font-size: 23px;
+        }
+
+        .cta-content p {
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+    .cta-button {
+        font-size: 14px;
+        padding: 11px 18px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES - 400px
+   ========================================================= */
+
+@media (max-width: 400px) {
+
+    .about-hero-content {
+        padding: 36px 18px;
+    }
+
+        .about-hero-content h1 {
+            font-size: 30px;
+        }
+
+        .about-hero-content p {
+            font-size: 14px;
+        }
+
+    .mission-section,
+    .how-section {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .section-title h2 {
+        font-size: 22px;
+    }
+
+    .mission-description {
+        font-size: 14px;
+    }
+
+    .mission-card {
+        padding: 22px 17px;
+    }
+
+    .mission-icon,
+    .step-icon {
+        width: 54px;
+        height: 54px;
+        font-size: 22px;
+    }
+
+    .mission-card h3 {
+        font-size: 17px;
+    }
+
+    .mission-card p,
+    .step p {
+        font-size: 13.5px;
+    }
+
+    .step h3 {
+        font-size: 16px;
+    }
+
+    .cta-content {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+        .cta-content h2 {
+            font-size: 21px;
+        }
+}

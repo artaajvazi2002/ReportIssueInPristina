@@ -1,0 +1,570 @@
+﻿@page "/report-issue"
+
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@using ReportIssueInPristina.Application.Services
+@using ReportIssueInPristina.Domain.Models
+
+@inject IReportService ReportService
+@inject IJSRuntime JS
+
+<PageTitle>Raporto një problem - Prishtina Civic Helper</PageTitle>
+
+<div class="report-page">
+
+    <!-- =========================
+         PAGE HEADER
+         ========================= -->
+    <div class="report-header">
+
+        <div class="breadcrumb">
+            <a href="/">Kryefaqja</a>
+            <span>›</span>
+            <span>Raporto një problem</span>
+        </div>
+
+        <h1>Raporto një problem</h1>
+
+        <p>
+            Ndihmoni në përmirësimin e Prishtinës duke raportuar
+            problemet në qytetin tuaj.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         MAIN CONTENT
+         ========================= -->
+    <div class="report-layout">
+
+        <!-- =========================
+             FORM CARD
+             ========================= -->
+        <div class="form-card">
+
+            <div class="card-title">
+                <div class="title-icon">▣</div>
+
+                <h2>Detajet e problemit</h2>
+            </div>
+
+
+            <!-- SUCCESS MESSAGE -->
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="success-message">
+                    <span>✓</span>
+                    <div>
+                        <strong>Raportimi u dërgua me sukses!</strong>
+                        <p>@successMessage</p>
+                    </div>
+                </div>
+            }
+
+
+            <!-- ERROR MESSAGE -->
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="error-message">
+                    <span>!</span>
+                    <div>
+                        <strong>Diçka shkoi keq.</strong>
+                        <p>@errorMessage</p>
+                    </div>
+                </div>
+            }
+
+
+            <!-- TITLE -->
+            <div class="form-group full-width">
+
+                <label>
+                    Titulli <span>*</span>
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       @bind="issue.Title"
+                       placeholder="p.sh. Ndriçimi publik i prishur në Bulevardin Nënë Tereza" />
+
+                @if (showValidation && string.IsNullOrWhiteSpace(issue.Title))
+                {
+                    <small class="validation-message">
+                        Ju lutemi vendosni titullin.
+                    </small>
+                }
+
+            </div>
+
+
+            <!-- CATEGORY + OTHER -->
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        Kategoria <span>*</span>
+                    </label>
+
+                    <select class="form-control"
+                            @bind="issue.CategoryId">
+
+                        <option value="0">
+                            Zgjidhni kategorinë
+                        </option>
+
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id">
+                                @category.Name
+                            </option>
+                        }
+
+                    </select>
+
+                    @if (showValidation && issue.CategoryId == 0)
+                    {
+                        <small class="validation-message">
+                            Ju lutemi zgjidhni një kategori.
+                        </small>
+                    }
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Tjetër
+                        <small>(opsionale)</small>
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Specifikoni kategorinë"
+                           disabled="@(issue.CategoryId != 6)" />
+
+                </div>
+
+            </div>
+
+
+            <!-- LOCATION -->
+            <div class="form-group full-width">
+
+                <label>
+                    Vendndodhja <span>*</span>
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       @bind="issue.Location"
+                       placeholder="p.sh. Bulevardi Nënë Tereza, Prishtinë" />
+
+                @if (showValidation && string.IsNullOrWhiteSpace(issue.Location))
+                {
+                    <small class="validation-message">
+                        Ju lutemi vendosni vendndodhjen.
+                    </small>
+                }
+
+                <button type="button"
+                        class="location-button"
+                        @onclick="UseCurrentLocation">
+
+                    <span>⌖</span>
+
+                    Përdor vendndodhjen time
+
+                </button>
+
+            </div>
+
+
+            <!-- DESCRIPTION -->
+            <div class="form-group full-width">
+
+                <label>
+                    Përshkrimi <span>*</span>
+                </label>
+
+                <textarea class="form-control description"
+                          maxlength="1000"
+                          @bind="issue.Description"
+                          @bind:event="oninput"
+                          placeholder="Përshkruani problemin në detaje..."></textarea>
+
+                <div class="character-count">
+                    @(issue.Description?.Length ?? 0) / 1000
+                </div>
+
+                @if (showValidation && string.IsNullOrWhiteSpace(issue.Description))
+                {
+                    <small class="validation-message">
+                        Ju lutemi përshkruani problemin.
+                    </small>
+                }
+
+            </div>
+
+
+            <!-- IMAGE UPLOAD -->
+            <div class="form-group full-width">
+
+                <label>
+                    Ngarko foto
+                    <small>(opsionale)</small>
+                </label>
+
+                <label class="upload-box">
+
+                    <div class="upload-icon">☁</div>
+
+                    <div class="upload-content">
+
+                        <strong>
+                            Klikoni për të ngarkuar ose tërhiqeni dhe lëshojeni
+                        </strong>
+
+                        <small>
+                            PNG, JPG deri në 5MB
+                        </small>
+
+                        @if (selectedFileName != null)
+                        {
+                            <span class="selected-file">
+                                ✓ @selectedFileName
+                            </span>
+                        }
+
+                    </div>
+
+                    <InputFile OnChange="HandleFileSelected"
+                               accept=".png,.jpg,.jpeg"
+                               class="file-input" />
+
+                </label>
+
+            </div>
+
+
+            <!-- SUBMIT -->
+            <button type="button"
+                    class="submit-button"
+                    @onclick="SubmitReport"
+                    disabled="@isSubmitting">
+
+                @if (isSubmitting)
+                {
+                    <span class="loading-spinner"></span>
+                    <span>Duke dërguar...</span>
+                }
+                else
+                {
+                    <span>➤</span>
+                    <span>Dërgo raportimin</span>
+                }
+
+            </button>
+
+
+            <div class="required-note">
+                * Fushat e detyrueshme
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             SIDEBAR
+             ========================= -->
+        <div class="sidebar">
+
+            <!-- HOW IT WORKS -->
+            <div class="side-card">
+
+                <div class="side-title">
+
+                    <div class="info-icon">
+                        i
+                    </div>
+
+                    <h2>Si funksionon</h2>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="step-icon">
+                        ▣
+                    </div>
+
+                    <div>
+                        <strong>Raporto</strong>
+
+                        <p>
+                            Plotësoni formularin me detajet e problemit.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="step-icon">
+                        ⚙
+                    </div>
+
+                    <div>
+                        <strong>Shqyrtohet</strong>
+
+                        <p>
+                            Ekipi ynë shqyrton raportimin tuaj.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="step-icon">
+                        ⚙
+                    </div>
+
+                    <div>
+                        <strong>Ndërmerren masa</strong>
+
+                        <p>
+                            Ndërmerren masat për zgjidhjen e problemit.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="step">
+
+                    <div class="step-icon">
+                        ♡
+                    </div>
+
+                    <div>
+                        <strong>Ndiq</strong>
+
+                        <p>
+                            Mund të ndiqni statusin e raportimit tuaj.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CATEGORIES -->
+            <div class="side-card categories-card">
+
+                <div class="side-title">
+                    <h2> Më të shpesha</h2>
+                </div>
+
+                @foreach (var category in categories)
+                {
+                    <div class="category-item">
+
+                        <span class="category-icon">
+                            @GetCategoryIcon(category.Name)
+                        </span>
+
+                        <span>
+                            @category.Name
+                        </span>
+
+                        <span class="arrow">
+                            ›
+                        </span>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@code {
+
+    private Issue issue = new();
+
+    private List<Category> categories = new();
+
+    private IBrowserFile? selectedFile;
+
+    private string? selectedFileName;
+
+    private string? errorMessage;
+
+    private string? successMessage;
+
+    private bool showValidation;
+
+    private bool isSubmitting;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await ReportService.GetAllCategoriesAsync();
+    }
+
+
+    private async Task SubmitReport()
+    {
+        showValidation = true;
+
+        errorMessage = null;
+        successMessage = null;
+
+        if (string.IsNullOrWhiteSpace(issue.Title) ||
+            issue.CategoryId == 0 ||
+            string.IsNullOrWhiteSpace(issue.Location) ||
+            string.IsNullOrWhiteSpace(issue.Description))
+        {
+            errorMessage = "Ju lutemi plotësoni të gjitha fushat e detyrueshme.";
+            return;
+        }
+
+        try
+        {
+            isSubmitting = true;
+
+            issue.Status = "Në pritje";
+            issue.DateCreated = DateTime.Now;
+
+            if (selectedFile != null)
+            {
+                var uploadsFolder = Path.Combine(
+                    Environment.CurrentDirectory,
+                    "wwwroot",
+                    "uploads");
+
+                Directory.CreateDirectory(uploadsFolder);
+
+                var extension = Path.GetExtension(selectedFile.Name);
+
+                var fileName = $"{Guid.NewGuid()}{extension}";
+
+                var filePath = Path.Combine(
+                    uploadsFolder,
+                    fileName);
+
+                await using var stream =
+                    selectedFile.OpenReadStream(5 * 1024 * 1024);
+
+                await using var fileStream =
+                    File.Create(filePath);
+
+                await stream.CopyToAsync(fileStream);
+
+                issue.ImageUrl = $"/uploads/{fileName}";
+            }
+
+            await ReportService.CreateReportAsync(issue);
+
+            successMessage =
+                "Raportimi juaj është regjistruar dhe do të shqyrtohet nga ekipi.";
+
+            issue = new Issue();
+
+            selectedFile = null;
+            selectedFileName = null;
+
+            showValidation = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage =
+                $"Raportimi nuk mund të dërgohej. {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+
+        if (selectedFile.Size > 5 * 1024 * 1024)
+        {
+            errorMessage = "Fotoja nuk mund të jetë më e madhe se 5MB.";
+
+            selectedFile = null;
+            selectedFileName = null;
+
+            return;
+        }
+
+        var extension = Path.GetExtension(selectedFile.Name)
+            .ToLowerInvariant();
+
+        if (extension != ".png" &&
+            extension != ".jpg" &&
+            extension != ".jpeg")
+        {
+            errorMessage = "Lejohen vetëm formatet PNG dhe JPG.";
+
+            selectedFile = null;
+            selectedFileName = null;
+
+            return;
+        }
+
+        errorMessage = null;
+
+        selectedFileName = selectedFile.Name;
+    }
+
+
+    private async Task UseCurrentLocation()
+    {
+        try
+        {
+            var location = await JS.InvokeAsync<string>(
+                "getCurrentLocation");
+
+            issue.Location = location;
+        }
+        catch
+        {
+            errorMessage =
+                "Nuk mund të merrej vendndodhja juaj. Ju lutemi shkruajeni manualisht.";
+        }
+    }
+
+
+    private string GetCategoryIcon(string? categoryName)
+    {
+        return categoryName switch
+        {
+            "Dëmtime të rrugëve" => "▲",
+            "Ndriçim publik" => "♧",
+            "Mbeturina" => "▥",
+            "Ujë" => "●",
+            "Energjia elektrike" => "ϟ",
+            "Tjetër" => "•••",
+            _ => "•"
+        };
+    }
+
+}

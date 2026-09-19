@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ReportIssueInPristina.Application/ReportIssueInPristina.Application.csproj" />
+  <Project Path="ReportIssueInPristina.Domain/ReportIssueInPristina.Domain.csproj" />
+  <Project Path="ReportIssueInPristina.Infrastructure/ReportIssueInPristina.Infrastructure.csproj" />
+  <Project Path="ReportIssueInPristina.Web/ReportIssueInPristina.Web.csproj" />
+</Solution>

@@ -1,0 +1,839 @@
+﻿@page "/issues" 
+ 
+@using ReportIssueInPristina.Application.Services 
+@using ReportIssueInPristina.Domain.Models 
+ 
+@inject IReportService ReportService 
+ 
+<PageTitle>Shiko Raportimet - Prishtina Civic Helper</PageTitle> 
+ 
+<div class="issues-page"> 
+ 
+    <!-- ========================= 
+         PAGE HEADER 
+         ========================= --> 
+ 
+    <section class="issues-header"> 
+ 
+        <div> 
+            <span class="page-kicker">RAPORTET E KOMUNITETIT</span> 
+ 
+            <h1>Shiko Raportimet</h1> 
+ 
+            <p> 
+                Shfleto të gjitha problemet e raportuara në Prishtinë. 
+                Mund të filtrosh, kërkosh dhe ndjekësh statusin. 
+            </p> 
+        </div> 
+ 
+    </section> 
+ 
+ 
+    <!-- ========================= 
+         FILTER BAR 
+         ========================= --> 
+ 
+    <section class="filter-card"> 
+ 
+        <div class="search-box"> 
+ 
+            <input @bind="searchText" 
+                   @bind:event="oninput" 
+                   @onkeydown="HandleSearchKey" 
+                   placeholder="Kërko sipas titullit ose lokacionit..." 
+                   aria-label="Kërko probleme" /> 
+ 
+            <button type="button" 
+                    @onclick="ApplyFilters" 
+                    aria-label="Kërko"> 
+ 
+                <svg viewBox="0 0 24 24" aria-hidden="true"> 
+                    <circle cx="11" cy="11" r="6.5"></circle> 
+                    <path d="M16 16L21 21"></path> 
+                </svg> 
+ 
+            </button> 
+ 
+        </div> 
+ 
+ 
+        <div class="filter-control"> 
+ 
+            <select @bind="selectedCategory"> 
+                <option value="">Të gjitha kategoritë</option> 
+ 
+                @foreach (var category in categories) 
+                { 
+                    <option value="@category">@category</option> 
+                } 
+            </select> 
+ 
+            <span class="select-arrow">⌄</span> 
+ 
+        </div> 
+ 
+ 
+        <div class="filter-control"> 
+ 
+            <select @bind="selectedStatus"> 
+                <option value="">Të gjitha statuset</option> 
+                <option value="Në pritje">Në pritje</option> 
+                <option value="Në proces">Në proces</option> 
+                <option value="Zgjidhur">Zgjidhur</option> 
+            </select> 
+ 
+            <span class="select-arrow">⌄</span> 
+ 
+        </div> 
+ 
+ 
+        <div class="filter-control"> 
+ 
+            <select @bind="selectedLocation"> 
+                <option value="">Të gjitha lokacionet</option> 
+ 
+                @foreach (var location in locations) 
+                { 
+                    <option value="@location">@location</option> 
+                } 
+            </select> 
+ 
+            <span class="select-arrow">⌄</span> 
+ 
+        </div> 
+ 
+ 
+        <div class="sort-control"> 
+ 
+            <label>Rendit sipas</label> 
+ 
+            <select @bind="selectedSort"> 
+                <option value="newest">Më të rejat</option> 
+                <option value="oldest">Më të vjetrat</option> 
+            </select> 
+ 
+            <span class="select-arrow">⌄</span> 
+ 
+        </div> 
+ 
+    </section> 
+ 
+ 
+    <!-- ========================= 
+         RESULTS 
+         ========================= --> 
+ 
+    <section class="issues-results"> 
+ 
+        @if (isLoading) 
+        { 
+            <div class="loading-state"> 
+ 
+                <div class="loading-spinner"></div> 
+ 
+                <p>Duke ngarkuar problemet e raportuara...</p> 
+ 
+            </div> 
+        } 
+        else if (filteredIssues.Count == 0) 
+        { 
+            <div class="empty-state"> 
+ 
+                <div class="empty-state-icon"> 
+                    <svg viewBox="0 0 24 24"> 
+                        <circle cx="11" cy="11" r="7"></circle> 
+                        <path d="M16 16L21 21"></path> 
+                    </svg> 
+                </div> 
+ 
+                <h2>Nuk u gjet asnjë raportim</h2> 
+ 
+                <p> 
+                    Nuk mundëm të gjejmë raporte që përputhen me filtrat tuaj. 
+                </p> 
+ 
+                <button type="button" 
+                        class="clear-filters-btn" 
+                        @onclick="ClearFilters"> 
+                    Pastro filtrat 
+                </button> 
+ 
+            </div> 
+        } 
+        else 
+        { 
+            <div class="table-wrapper"> 
+ 
+                <table class="issues-table"> 
+ 
+                    <thead> 
+ 
+                        <tr> 
+                            <th>ID</th> 
+                            <th>Titulli</th> 
+                            <th>Kategoria</th> 
+                            <th>Lokacioni</th> 
+                            <th>Statusi</th> 
+                            <th>Data e raportimit</th> 
+                            <th>Veprimet</th> 
+                        </tr> 
+ 
+                    </thead> 
+ 
+                    <tbody> 
+ 
+                        @foreach (var issue in PagedIssues) 
+                        { 
+                            <tr> 
+ 
+                                <!-- ID --> 
+ 
+                                <td class="issue-id"> 
+                                    #@issue.Id 
+                                </td> 
+ 
+ 
+                                <!-- TITLE --> 
+ 
+                                <td> 
+ 
+                                    <div class="issue-title-cell"> 
+ 
+                                        <div class="issue-image"> 
+ 
+                                            @if (!string.IsNullOrWhiteSpace(issue.ImageUrl)) 
+                                            { 
+                                                <img src="@issue.ImageUrl" 
+                                                     alt="@issue.Title" 
+                                                     loading="lazy" /> 
+                                            } 
+                                            else 
+                                            { 
+                                                <div class="image-placeholder"> 
+                                                    <svg viewBox="0 0 24 24"> 
+                                                        <path d="M4 20L10 14L14 18L17 15L21 20"></path> 
+                                                        <circle cx="9" cy="8" r="2"></circle> 
+                                                    </svg> 
+                                                </div> 
+                                            } 
+ 
+                                        </div> 
+ 
+                                        <div class="issue-title-content"> 
+ 
+                                            <strong> 
+                                                @issue.Title 
+                                            </strong> 
+ 
+                                            <span> 
+                                                @(issue.Category?.Name ?? "Pa kategori") 
+                                            </span> 
+ 
+                                        </div> 
+ 
+                                    </div> 
+ 
+                                </td> 
+ 
+ 
+                                <!-- CATEGORY --> 
+ 
+                                <td> 
+ 
+                                    <div class="category-cell"> 
+ 
+                                        <span class="category-icon @GetCategoryClass(issue.Category?.Name)"> 
+ 
+                                            @GetCategoryIcon(issue.Category?.Name) 
+ 
+                                        </span> 
+ 
+                                    </div> 
+ 
+                                </td> 
+ 
+ 
+                                <!-- LOCATION --> 
+ 
+                                <td> 
+ 
+                                    <span class="location-text"> 
+                                        @issue.Location 
+                                    </span> 
+ 
+                                </td> 
+ 
+ 
+                                <!-- STATUS --> 
+ 
+                                <td> 
+ 
+                                    <span class="status-badge @GetStatusClass(issue.Status)"> 
+                                        @GetStatusText(issue.Status) 
+                                    </span> 
+ 
+                                </td> 
+ 
+ 
+                                <!-- DATE --> 
+ 
+                                <td> 
+ 
+                                    <div class="date-cell"> 
+ 
+                                        <span> 
+                                            @issue.DateCreated.ToString("MMM dd, yyyy") 
+                                        </span> 
+ 
+                                        <small> 
+                                            @issue.DateCreated.ToString("hh:mm tt") 
+                                        </small> 
+ 
+                                    </div> 
+ 
+                                </td> 
+ 
+ 
+                                <!-- ACTION --> 
+ 
+                                <td> 
+ 
+                                    <button type="button" 
+                                            class="view-button" 
+                                            @onclick="() => OpenIssue(issue)" 
+                                            aria-label="Shiko raportimin @issue.Id"> 
+ 
+                                        <svg viewBox="0 0 24 24"> 
+                                            <path d="M2 12s3.5-6 10-6s10 6 10 6s-3.5 6-10 6S2 12 2 12Z"></path> 
+                                            <circle cx="12" cy="12" r="2.5"></circle> 
+                                        </svg> 
+ 
+                                    </button> 
+ 
+                                </td> 
+ 
+                            </tr> 
+                        } 
+ 
+                    </tbody> 
+ 
+                </table> 
+ 
+            </div> 
+ 
+ 
+            <!-- ========================= 
+                 MOBILE CARDS 
+                 ========================= --> 
+ 
+            <div class="mobile-issues"> 
+ 
+                @foreach (var issue in PagedIssues) 
+                { 
+                    <article class="mobile-issue-card"> 
+ 
+                        <div class="mobile-issue-top"> 
+ 
+                            <div class="mobile-issue-image"> 
+ 
+                                @if (!string.IsNullOrWhiteSpace(issue.ImageUrl)) 
+                                { 
+                                    <img src="@issue.ImageUrl" 
+                                         alt="@issue.Title" /> 
+                                } 
+                                else 
+                                { 
+                                    <div class="image-placeholder"> 
+                                        <svg viewBox="0 0 24 24"> 
+                                            <path d="M4 20L10 14L14 18L17 15L21 20"></path> 
+                                            <circle cx="9" cy="8" r="2"></circle> 
+                                        </svg> 
+                                    </div> 
+                                } 
+ 
+                            </div> 
+ 
+                            <div class="mobile-issue-main"> 
+ 
+                                <span class="mobile-id"> 
+                                    #@issue.Id 
+                                </span> 
+ 
+                                <h3>@issue.Title</h3> 
+ 
+                                <span class="mobile-category"> 
+                                    @(issue.Category?.Name ?? "Pa kategori") 
+                                </span> 
+ 
+                            </div> 
+ 
+                            <span class="status-badge @GetStatusClass(issue.Status)"> 
+                                @GetStatusText(issue.Status) 
+                            </span> 
+ 
+                        </div> 
+ 
+ 
+                        <div class="mobile-issue-details"> 
+ 
+                            <div> 
+                                <span>Lokacioni</span> 
+                                <strong>@issue.Location</strong> 
+                            </div> 
+ 
+                            <div> 
+                                <span>Data e raportimit</span> 
+                                <strong> 
+                                    @issue.DateCreated.ToString("MMM dd, yyyy") 
+                                </strong> 
+                            </div> 
+ 
+                        </div> 
+ 
+ 
+                        <button type="button" 
+                                class="mobile-view-button" 
+                                @onclick="() => OpenIssue(issue)"> 
+ 
+                            Shiko problemin 
+                            <span>→</span> 
+ 
+                        </button> 
+ 
+                    </article> 
+                } 
+ 
+            </div> 
+ 
+ 
+            <!-- ========================= 
+                 FOOTER / PAGINATION 
+                 ========================= --> 
+ 
+            <div class="results-footer"> 
+ 
+                <span class="results-count"> 
+                    Duke shfaqur @FirstDisplayedResult deri në @LastDisplayedResult 
+                    nga @filteredIssues.Count rezultate 
+                </span> 
+ 
+ 
+                @if (TotalPages > 1) 
+                { 
+                    <div class="pagination"> 
+ 
+                        <button type="button" 
+                                disabled="@(currentPage == 1)" 
+                                @onclick="PreviousPage"> 
+                            ‹ 
+                        </button> 
+ 
+                        @for (int page = 1; page <= TotalPages; page++) 
+                        { 
+                            var pageNumber = page; 
+ 
+                            <button type="button" 
+                                    class="@(currentPage == pageNumber ? "active" : "")" 
+                                    @onclick="() => GoToPage(pageNumber)"> 
+                                @pageNumber 
+                            </button> 
+                        } 
+ 
+                        <button type="button" 
+                                disabled="@(currentPage == TotalPages)" 
+                                @onclick="NextPage"> 
+                            › 
+                        </button> 
+ 
+                    </div> 
+ 
+                } 
+ 
+            </div> 
+        } 
+ 
+    </section> 
+ 
+</div> 
+ 
+ 
+<!-- ========================= 
+     ISSUE DETAIL MODAL 
+     ========================= --> 
+ 
+@if (selectedIssue is not null) 
+{ 
+    <div class="modal-backdrop" 
+         @onclick="CloseIssue"> 
+ 
+        <div class="issue-modal" 
+             @onclick:stopPropagation="true"> 
+ 
+            <button type="button" 
+                    class="modal-close" 
+                    @onclick="CloseIssue" 
+                    aria-label="Mbyll"> 
+                × 
+            </button> 
+ 
+ 
+            <div class="modal-image"> 
+ 
+                @if (!string.IsNullOrWhiteSpace(selectedIssue.ImageUrl)) 
+                { 
+                    <img src="@selectedIssue.ImageUrl" 
+                         alt="@selectedIssue.Title" /> 
+                } 
+ 
+            </div> 
+ 
+ 
+            <div class="modal-content"> 
+ 
+                <div class="modal-top"> 
+ 
+                    <span class="modal-id"> 
+                        #@selectedIssue.Id 
+                    </span> 
+ 
+                    <span class="status-badge @GetStatusClass(selectedIssue.Status)"> 
+                        @GetStatusText(selectedIssue.Status) 
+                    </span> 
+ 
+                </div> 
+ 
+ 
+                <span class="modal-category"> 
+                    @(selectedIssue.Category?.Name ?? "Pa kategori") 
+                </span> 
+ 
+ 
+                <h2>@selectedIssue.Title</h2> 
+ 
+ 
+                <div class="modal-location"> 
+                    <span>⌖</span> 
+                    @selectedIssue.Location 
+                </div> 
+ 
+ 
+                @if (!string.IsNullOrWhiteSpace(selectedIssue.Description)) 
+                { 
+                    <div class="modal-description"> 
+ 
+                        <h3>Përshkrimi</h3> 
+ 
+                        <p> 
+                            @selectedIssue.Description 
+                        </p> 
+ 
+                    </div> 
+                } 
+ 
+ 
+                <div class="modal-date"> 
+ 
+                    Raportuar më 
+                    <strong> 
+                        @selectedIssue.DateCreated.ToString("MMMM dd, yyyy 'në' hh:mm tt") 
+                    </strong> 
+ 
+                </div> 
+ 
+            </div> 
+ 
+        </div> 
+ 
+    </div> 
+} 
+ 
+ 
+@code { 
+ 
+    private List<Issue> allIssues = new(); 
+    private List<Issue> filteredIssues = new(); 
+ 
+    private List<string> categories = new(); 
+    private List<string> locations = new(); 
+ 
+    private string searchText = ""; 
+    private string selectedCategory = ""; 
+    private string selectedStatus = ""; 
+    private string selectedLocation = ""; 
+    private string selectedSort = "newest"; 
+ 
+    private bool isLoading = true; 
+ 
+    private int currentPage = 1; 
+    private const int PageSize = 7; 
+ 
+    private Issue? selectedIssue; 
+ 
+    private int TotalPages => 
+        Math.Max(1, (int)Math.Ceiling((double)filteredIssues.Count / PageSize)); 
+ 
+    private IEnumerable<Issue> PagedIssues => 
+        filteredIssues 
+            .Skip((currentPage - 1) * PageSize) 
+            .Take(PageSize); 
+ 
+    private int FirstDisplayedResult => 
+        filteredIssues.Count == 0 
+            ? 0 
+            : ((currentPage - 1) * PageSize) + 1; 
+ 
+    private int LastDisplayedResult => 
+        Math.Min(currentPage * PageSize, filteredIssues.Count); 
+ 
+ 
+    protected override async Task OnInitializedAsync() 
+    { 
+        await LoadIssues(); 
+    } 
+ 
+ 
+    private async Task LoadIssues() 
+    { 
+        try 
+        { 
+            isLoading = true; 
+ 
+            allIssues = await ReportService.GetAllReportsAsync(); 
+ 
+            categories = allIssues 
+                .Where(i => i.Category != null) 
+                .Select(i => i.Category!.Name) 
+                .Where(n => !string.IsNullOrWhiteSpace(n)) 
+                .Distinct() 
+                .OrderBy(n => n) 
+                .ToList()!; 
+ 
+            locations = allIssues 
+                .Select(i => i.Location) 
+                .Where(l => !string.IsNullOrWhiteSpace(l)) 
+                .Select(l => l!) 
+                .Distinct() 
+                .OrderBy(l => l) 
+                .ToList(); 
+ 
+            ApplyFilters(); 
+        } 
+        finally 
+        { 
+            isLoading = false; 
+        } 
+    } 
+ 
+ 
+    private void ApplyFilters() 
+    { 
+        IEnumerable<Issue> query = allIssues; 
+ 
+ 
+        // SEARCH 
+ 
+        if (!string.IsNullOrWhiteSpace(searchText)) 
+        { 
+            var search = searchText.Trim(); 
+ 
+            query = query.Where(i => 
+                (!string.IsNullOrWhiteSpace(i.Title) && 
+                 i.Title.Contains(search, StringComparison.OrdinalIgnoreCase)) 
+                || 
+                (!string.IsNullOrWhiteSpace(i.Location) && 
+                 i.Location.Contains(search, StringComparison.OrdinalIgnoreCase))); 
+        } 
+ 
+ 
+        // CATEGORY 
+ 
+        if (!string.IsNullOrWhiteSpace(selectedCategory)) 
+        { 
+            query = query.Where(i => 
+                string.Equals( 
+                    i.Category?.Name, 
+                    selectedCategory, 
+                    StringComparison.OrdinalIgnoreCase)); 
+        } 
+ 
+ 
+        // STATUS 
+ 
+        if (!string.IsNullOrWhiteSpace(selectedStatus)) 
+        { 
+            query = query.Where(i => 
+                string.Equals( 
+                    i.Status, 
+                    selectedStatus, 
+                    StringComparison.OrdinalIgnoreCase)); 
+        } 
+ 
+ 
+        // LOCATION 
+ 
+        if (!string.IsNullOrWhiteSpace(selectedLocation)) 
+        { 
+            query = query.Where(i => 
+                string.Equals( 
+                    i.Location, 
+                    selectedLocation, 
+                    StringComparison.OrdinalIgnoreCase)); 
+        } 
+ 
+ 
+        // SORT 
+ 
+        query = selectedSort == "oldest" 
+            ? query.OrderBy(i => i.DateCreated) 
+            : query.OrderByDescending(i => i.DateCreated); 
+ 
+ 
+        filteredIssues = query.ToList(); 
+ 
+        currentPage = 1; 
+    } 
+ 
+ 
+    private async Task HandleSearchKey(KeyboardEventArgs e) 
+    { 
+        if (e.Key == "Enter") 
+        { 
+            ApplyFilters(); 
+            await InvokeAsync(StateHasChanged); 
+        } 
+    } 
+ 
+ 
+    private void ClearFilters() 
+    { 
+        searchText = ""; 
+        selectedCategory = ""; 
+        selectedStatus = ""; 
+        selectedLocation = ""; 
+        selectedSort = "newest"; 
+ 
+        ApplyFilters(); 
+    } 
+ 
+ 
+    private void GoToPage(int page) 
+    { 
+        if (page < 1 || page > TotalPages) 
+            return; 
+ 
+        currentPage = page; 
+    } 
+ 
+ 
+    private void PreviousPage() 
+    { 
+        if (currentPage > 1) 
+            currentPage--; 
+    } 
+ 
+ 
+    private void NextPage() 
+    { 
+        if (currentPage < TotalPages) 
+            currentPage++; 
+    } 
+ 
+ 
+    private void OpenIssue(Issue issue) 
+    { 
+        selectedIssue = issue; 
+    } 
+ 
+ 
+    private void CloseIssue() 
+    { 
+        selectedIssue = null; 
+    } 
+ 
+ 
+    private string GetStatusClass(string? status) 
+    { 
+        return status?.Trim().ToLowerInvariant() switch 
+        { 
+            "në pritje" => "pending", 
+            "pending" => "pending", 
+ 
+            "në proces" => "progress", 
+            "in progress" => "progress", 
+ 
+            "zgjidhur" => "solved", 
+            "solved" => "solved", 
+ 
+            _ => "pending" 
+        }; 
+    } 
+ 
+ 
+    private string GetStatusText(string? status) 
+    { 
+        return status?.Trim().ToLowerInvariant() switch 
+        { 
+            "pending" => "Në pritje", 
+            "në pritje" => "Në pritje", 
+ 
+            "in progress" => "Në proces", 
+            "në proces" => "Në proces", 
+ 
+            "solved" => "Zgjidhur", 
+            "zgjidhur" => "Zgjidhur", 
+ 
+            _ => "Në pritje" 
+        }; 
+    } 
+ 
+ 
+    private string GetCategoryClass(string? category) 
+    { 
+        var value = category?.ToLowerInvariant() ?? ""; 
+ 
+        if (value.Contains("garbage") || value.Contains("mbetur")) 
+            return "garbage"; 
+ 
+        if (value.Contains("water") || value.Contains("uj")) 
+            return "water"; 
+ 
+        if (value.Contains("electric") || value.Contains("energ")) 
+            return "electricity"; 
+ 
+        if (value.Contains("street") || value.Contains("ndri")) 
+            return "streetlight"; 
+ 
+        if (value.Contains("road") || 
+            value.Contains("rrug") || 
+            value.Contains("sidewalk")) 
+            return "road"; 
+ 
+        return "default"; 
+    } 
+ 
+ 
+    private string GetCategoryIcon(string? category) 
+    { 
+        var value = category?.ToLowerInvariant() ?? ""; 
+ 
+        if (value.Contains("garbage") || value.Contains("mbetur")) 
+            return "♜"; 
+ 
+        if (value.Contains("water") || value.Contains("uj")) 
+            return "♢"; 
+ 
+        if (value.Contains("electric") || value.Contains("energ")) 
+            return "ϟ"; 
+ 
+        if (value.Contains("street") || value.Contains("ndri")) 
+            return "♧"; 
+ 
+        if (value.Contains("road") || 
+            value.Contains("rrug") || 
+            value.Contains("sidewalk")) 
+            return "!"; 
+ 
+        return "•"; 
+    } 
+}
+```

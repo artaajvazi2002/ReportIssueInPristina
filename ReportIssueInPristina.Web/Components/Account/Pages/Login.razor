@@ -1,0 +1,317 @@
+﻿@page "/Account/Login"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using ReportIssueInPristina.Web.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Hyr - Pristina Civic Helper</PageTitle>
+
+<div class="login-page">
+
+    <!-- LEFT SIDE -->
+    <div class="login-intro">
+
+        <div class="intro-content">
+
+            <a href="/" class="brand">
+                <div class="brand-icon">
+                    <span>PC</span>
+                </div>
+
+                <span class="brand-name">
+                    Pristina Civic Helper
+                </span>
+            </a>
+
+            <div class="intro-text">
+
+                <span class="intro-label">
+                    PRISHTINA • QYTETARËT • INFRASTRUKTURA
+                </span>
+
+                <h1>
+                    Ta përmirësojmë
+                    <span>infrastrukturën</span>
+                    e Prishtinës së bashku.
+                </h1>
+
+                <p>
+                    Raporto problemet infrastrukturore në qytetin tënd
+                    dhe kontribuo në një Prishtinë më të pastër,
+                    më të sigurt dhe më funksionale.
+                </p>
+
+            </div>
+
+            <div class="intro-footer">
+                <span class="footer-line"></span>
+                <span>Një qytet më i mirë fillon me një raportim.</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT SIDE -->
+    <div class="login-area">
+
+        <div class="login-card">
+
+            <div class="login-header">
+
+                <h2>Mirë se vini!</h2>
+
+                <p>
+                    Hyni në llogarinë tuaj për të vazhduar.
+                </p>
+
+            </div>
+
+            <StatusMessage Message="@errorMessage" />
+
+            <EditForm EditContext="editContext"
+                      method="post"
+                      OnSubmit="LoginUser"
+                      FormName="login">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="text-danger"
+                                   role="alert" />
+
+                <!-- EMAIL -->
+                <div class="form-group">
+
+                    <label for="Input.Email">
+                        Email
+                    </label>
+
+                    <InputText @bind-Value="Input.Email"
+                               id="Input.Email"
+                               class="form-control"
+                               autocomplete="username webauthn"
+                               aria-required="true"
+                               placeholder="Shkruani email-in tuaj" />
+
+                    <ValidationMessage For="() => Input.Email"
+                                       class="text-danger" />
+
+                </div>
+
+
+                <!-- PASSWORD -->
+                <div class="form-group">
+
+                    <label for="Input.Password">
+                        Fjalëkalimi
+                    </label>
+
+                    <InputText type="password"
+                               @bind-Value="Input.Password"
+                               id="Input.Password"
+                               class="form-control"
+                               autocomplete="current-password"
+                               aria-required="true"
+                               placeholder="Shkruani fjalëkalimin tuaj" />
+
+                    <ValidationMessage For="() => Input.Password"
+                                       class="text-danger" />
+
+                </div>
+
+
+                <!-- OPTIONS -->
+                <div class="login-options">
+
+                    <label class="remember-option">
+
+                        <InputCheckbox @bind-Value="Input.RememberMe"
+                                       class="form-check-input" />
+
+                        <span>
+                            Më mbaj të kyçur
+                        </span>
+
+                    </label>
+
+                    <a href="Account/ForgotPassword">
+                        Keni harruar fjalëkalimin?
+                    </a>
+
+                </div>
+
+
+                <!-- LOGIN BUTTON -->
+                <button type="submit"
+                        class="login-button">
+
+                    Hyr në llogari
+
+                </button>
+
+
+                <!-- REGISTER -->
+                <div class="register-section">
+
+                    <span>
+                        Nuk keni ende llogari?
+                    </span>
+
+                    <a href="@(NavigationManager.GetUriWithQueryParameters(
+                                               "Account/Register",
+                                               new Dictionary<string, object?>
+                                               {
+                                                   ["ReturnUrl"] = ReturnUrl
+                                               }))">
+
+                        Regjistrohu
+
+                    </a>
+
+                </div>
+
+
+                <!-- PASSKEY -->
+                <div class="additional-login">
+
+                    <div class="divider">
+                        <span>ose</span>
+                    </div>
+
+                    <PasskeySubmit Operation="PasskeyOperation.Request"
+                                   Name="Input.Passkey"
+                                   EmailName="Input.Email"
+                                   class="passkey-button">
+
+                        Hyr me Passkey
+
+                    </PasskeySubmit>
+
+                </div>
+
+
+                <!-- ADDITIONAL LINKS -->
+                <div class="login-help">
+
+                    <a href="Account/ResendEmailConfirmation">
+                        Ridërgo konfirmimin e email-it
+                    </a>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@code {
+    private string? errorMessage;
+    private EditContext editContext = default!;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+
+        editContext = new EditContext(Input);
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            await HttpContext.SignOutAsync(
+                IdentityConstants.ExternalScheme);
+        }
+    }
+
+    public async Task LoginUser()
+    {
+        if (!string.IsNullOrEmpty(Input.Passkey?.Error))
+        {
+            errorMessage = $"Error: {Input.Passkey.Error}";
+            return;
+        }
+
+        SignInResult result;
+
+        if (!string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
+        {
+            result = await SignInManager.PasskeySignInAsync(
+                Input.Passkey.CredentialJson);
+        }
+        else
+        {
+            if (!editContext.Validate())
+            {
+                return;
+            }
+
+            result = await SignInManager.PasswordSignInAsync(
+                Input.Email,
+                Input.Password,
+                Input.RememberMe,
+                lockoutOnFailure: false);
+        }
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User logged in.");
+            RedirectManager.RedirectTo("/");
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo(
+                "Account/LoginWith2fa",
+                new()
+                {
+                    ["returnUrl"] = ReturnUrl,
+                    ["rememberMe"] = Input.RememberMe
+                });
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            errorMessage = "Error: Email-i ose fjalëkalimi nuk është i saktë.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
+
+        public PasskeyInputModel? Passkey { get; set; }
+    }
+}
