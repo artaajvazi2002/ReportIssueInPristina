@@ -1,15 +1,20 @@
 ﻿@page "/report-issue"
+@page "/report-issue/{IssueId:int}"
 
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
+@using System.IO
 @using ReportIssueInPristina.Application.Services
 @using ReportIssueInPristina.Domain.Models
 
 @inject IReportService ReportService
+@inject IImageStorageService ImageStorageService
 @inject IJSRuntime JS
+@inject ICurrentUserService CurrentUserService
+@inject NavigationManager NavigationManager
 
-<PageTitle>Raporto një problem - Prishtina Civic Helper</PageTitle>
+<PageTitle>@(IsEditMode ? "Ndrysho raportimin" : "Raporto një problem") - Prishtina Civic Helper</PageTitle>
 
 <div class="report-page">
 
@@ -24,11 +29,12 @@
             <span>Raporto një problem</span>
         </div>
 
-        <h1>Raporto një problem</h1>
+        <h1>@(IsEditMode ? "Ndrysho raportimin" : "Raporto një problem")</h1>
 
         <p>
-            Ndihmoni në përmirësimin e Prishtinës duke raportuar
-            problemet në qytetin tuaj.
+            @(IsEditMode
+                ? "Përditësoni detajet e raportimit tuaj."
+                : "Ndihmoni në përmirësimin e Prishtinës duke raportuar problemet në qytetin tuaj.")
         </p>
 
     </div>
@@ -57,7 +63,7 @@
                 <div class="success-message">
                     <span>✓</span>
                     <div>
-                        <strong>Raportimi u dërgua me sukses!</strong>
+                        <strong>@(IsEditMode ? "Raportimi u ndryshua me sukses!" : "Raportimi u dërgua me sukses!")</strong>
                         <p>@successMessage</p>
                     </div>
                 </div>
@@ -84,9 +90,7 @@
                     Titulli <span>*</span>
                 </label>
 
-                <input type="text"
-                       class="form-control"
-                       @bind="issue.Title"
+                <input type="text" class="form-control" @bind="issue.Title"
                        placeholder="p.sh. Ndriçimi publik i prishur në Bulevardin Nënë Tereza" />
 
                 @if (showValidation && string.IsNullOrWhiteSpace(issue.Title))
@@ -108,8 +112,7 @@
                         Kategoria <span>*</span>
                     </label>
 
-                    <select class="form-control"
-                            @bind="issue.CategoryId">
+                    <select class="form-control" @bind="issue.CategoryId">
 
                         <option value="0">
                             Zgjidhni kategorinë
@@ -141,14 +144,34 @@
                         <small>(opsionale)</small>
                     </label>
 
-                    <input type="text"
-                           class="form-control"
-                           placeholder="Specifikoni kategorinë"
+                    <input type="text" class="form-control" placeholder="Specifikoni kategorinë"
                            disabled="@(issue.CategoryId != 6)" />
 
                 </div>
 
             </div>
+
+            @if (IsEditMode && CurrentUserService.IsAdmin)
+            {
+                <div class="admin-status-panel">
+                    <div>
+                        <label>Statusi i raportimit</label>
+                        <small>Vetëm administratorët mund ta ndryshojnë statusin.</small>
+                    </div>
+
+                    <div class="status-stepper" role="group" aria-label="Ndrysho statusin">
+                        @foreach (var status in statuses)
+                        {
+                            <button type="button"
+                                    class="status-step @(selectedEditStatus == status ? "selected" : "")"
+                                    @onclick="() => selectedEditStatus = status">
+                                <span class="status-dot"></span>
+                                <span>@status</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
 
 
             <!-- LOCATION -->
@@ -158,9 +181,7 @@
                     Vendndodhja <span>*</span>
                 </label>
 
-                <input type="text"
-                       class="form-control"
-                       @bind="issue.Location"
+                <input type="text" class="form-control" @bind="issue.Location"
                        placeholder="p.sh. Bulevardi Nënë Tereza, Prishtinë" />
 
                 @if (showValidation && string.IsNullOrWhiteSpace(issue.Location))
@@ -170,9 +191,7 @@
                     </small>
                 }
 
-                <button type="button"
-                        class="location-button"
-                        @onclick="UseCurrentLocation">
+                <button type="button" class="location-button" @onclick="UseCurrentLocation">
 
                     <span>⌖</span>
 
@@ -190,11 +209,8 @@
                     Përshkrimi <span>*</span>
                 </label>
 
-                <textarea class="form-control description"
-                          maxlength="1000"
-                          @bind="issue.Description"
-                          @bind:event="oninput"
-                          placeholder="Përshkruani problemin në detaje..."></textarea>
+                <textarea class="form-control description" maxlength="1000" @bind="issue.Description"
+                          @bind:event="oninput" placeholder="Përshkruani problemin në detaje..."></textarea>
 
                 <div class="character-count">
                     @(issue.Description?.Length ?? 0) / 1000
@@ -232,18 +248,16 @@
                             PNG, JPG deri në 5MB
                         </small>
 
-                        @if (selectedFileName != null)
+                        @if (selectedFileNames.Count > 0)
                         {
                             <span class="selected-file">
-                                ✓ @selectedFileName
+                                ✓ @string.Join(", ", selectedFileNames)
                             </span>
                         }
 
                     </div>
 
-                    <InputFile OnChange="HandleFileSelected"
-                               accept=".png,.jpg,.jpeg"
-                               class="file-input" />
+                    <InputFile OnChange="HandleFilesSelected" accept=".png,.jpg,.jpeg" multiple class="file-input" />
 
                 </label>
 
@@ -251,10 +265,7 @@
 
 
             <!-- SUBMIT -->
-            <button type="button"
-                    class="submit-button"
-                    @onclick="SubmitReport"
-                    disabled="@isSubmitting">
+            <button type="button" class="submit-button" @onclick="SubmitReport" disabled="@isSubmitting">
 
                 @if (isSubmitting)
                 {
@@ -264,7 +275,7 @@
                 else
                 {
                     <span>➤</span>
-                    <span>Dërgo raportimin</span>
+                    <span>@(IsEditMode ? "Ruaj ndryshimet" : "Dërgo raportimin")</span>
                 }
 
             </button>
@@ -407,9 +418,9 @@
 
     private List<Category> categories = new();
 
-    private IBrowserFile? selectedFile;
+    private IReadOnlyList<IBrowserFile> selectedFiles = Array.Empty<IBrowserFile>();
 
-    private string? selectedFileName;
+    private List<string> selectedFileNames = new();
 
     private string? errorMessage;
 
@@ -419,10 +430,35 @@
 
     private bool isSubmitting;
 
+    [Parameter]
+    public int? IssueId { get; set; }
+
+    private bool IsEditMode => IssueId.HasValue;
+    private bool CanEditIssue => issue.ApplicationUserId == CurrentUserService.UserId;
+    private readonly string[] statuses = { "Në pritje", "Në proces", "Zgjidhur" };
+    private string selectedEditStatus = "Në pritje";
+
 
     protected override async Task OnInitializedAsync()
     {
+        await CurrentUserService.InitializeAsync();
         categories = await ReportService.GetAllCategoriesAsync();
+
+        if (IssueId.HasValue)
+        {
+            var existingIssue = await ReportService.GetReportByIdAsync(IssueId.Value);
+            if (existingIssue is not null &&
+                (existingIssue.ApplicationUserId == CurrentUserService.UserId || CurrentUserService.IsAdmin))
+            {
+                issue = existingIssue;
+                selectedEditStatus = GetStatusText(issue.Status);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/issues");
+                return;
+            }
+        }
     }
 
 
@@ -432,6 +468,22 @@
 
         errorMessage = null;
         successMessage = null;
+
+        if (CurrentUserService.UserId == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        if (IsEditMode && CurrentUserService.IsAdmin && !CanEditIssue)
+        {
+            if (await ReportService.UpdateStatusAsync(issue.Id, selectedEditStatus, true))
+                successMessage = "Statusi u përditësua me sukses.";
+            else
+                errorMessage = "Statusi nuk mund të përditësohej.";
+
+            return;
+        }
 
         if (string.IsNullOrWhiteSpace(issue.Title) ||
             issue.CategoryId == 0 ||
@@ -446,47 +498,57 @@
         {
             isSubmitting = true;
 
-            issue.Status = "Në pritje";
-            issue.DateCreated = DateTime.Now;
-
-            if (selectedFile != null)
+            if (!IsEditMode)
             {
-                var uploadsFolder = Path.Combine(
-                    Environment.CurrentDirectory,
-                    "wwwroot",
-                    "uploads");
-
-                Directory.CreateDirectory(uploadsFolder);
-
-                var extension = Path.GetExtension(selectedFile.Name);
-
-                var fileName = $"{Guid.NewGuid()}{extension}";
-
-                var filePath = Path.Combine(
-                    uploadsFolder,
-                    fileName);
-
-                await using var stream =
-                    selectedFile.OpenReadStream(5 * 1024 * 1024);
-
-                await using var fileStream =
-                    File.Create(filePath);
-
-                await stream.CopyToAsync(fileStream);
-
-                issue.ImageUrl = $"/uploads/{fileName}";
+                issue.Status = "Në pritje";
+                issue.DateCreated = DateTime.Now;
             }
 
-            await ReportService.CreateReportAsync(issue);
+            foreach (var selectedFile in selectedFiles)
+            {
+                var extension = Path.GetExtension(selectedFile.Name);
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                await using var stream =
+                    selectedFile.OpenReadStream(5 * 1024 * 1024);
+                var imageUrl = await ImageStorageService.UploadAsync(
+                    stream,
+                    fileName,
+                    selectedFile.ContentType);
+                issue.ImageUrls.Add(imageUrl);
+            }
 
-            successMessage =
-                "Raportimi juaj është regjistruar dhe do të shqyrtohet nga ekipi.";
+            if (IsEditMode)
+            {
+                var updatedIssue = await ReportService.UpdateReportAsync(issue, CurrentUserService.UserId);
+                if (updatedIssue is null)
+                {
+                    errorMessage = "Raportimi nuk mund të ndryshohej.";
+                    return;
+                }
 
-            issue = new Issue();
+                if (CurrentUserService.IsAdmin &&
+                    !await ReportService.UpdateStatusAsync(issue.Id, selectedEditStatus, true))
+                {
+                    errorMessage = "Statusi nuk mund të përditësohej.";
+                    return;
+                }
 
-            selectedFile = null;
-            selectedFileName = null;
+                issue.Status = CurrentUserService.IsAdmin
+                    ? selectedEditStatus
+                    : issue.Status;
 
+                successMessage = "Ndryshimet u ruajtën me sukses.";
+            }
+            else
+            {
+                issue.ApplicationUserId = CurrentUserService.UserId;
+                await ReportService.CreateReportAsync(issue);
+                successMessage = "Raportimi juaj është regjistruar dhe do të shqyrtohet nga ekipi.";
+                issue = new Issue();
+            }
+
+            selectedFiles = Array.Empty<IBrowserFile>();
+            selectedFileNames.Clear();
             showValidation = false;
         }
         catch (Exception ex)
@@ -501,38 +563,33 @@
     }
 
 
-    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    private Task HandleFilesSelected(InputFileChangeEventArgs e)
     {
-        selectedFile = e.File;
-
-        if (selectedFile.Size > 5 * 1024 * 1024)
+        var files = e.GetMultipleFiles(5);
+        foreach (var file in files)
         {
-            errorMessage = "Fotoja nuk mund të jetë më e madhe se 5MB.";
+            if (file.Size > 5 * 1024 * 1024)
+            {
+                errorMessage = "Çdo foto nuk mund të jetë më e madhe se 5MB.";
+                selectedFiles = Array.Empty<IBrowserFile>();
+                selectedFileNames.Clear();
+                return Task.CompletedTask;
+            }
 
-            selectedFile = null;
-            selectedFileName = null;
-
-            return;
+            var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+            if (extension is not ".png" and not ".jpg" and not ".jpeg")
+            {
+                errorMessage = "Lejohen vetëm formatet PNG, JPG dhe JPEG.";
+                selectedFiles = Array.Empty<IBrowserFile>();
+                selectedFileNames.Clear();
+                return Task.CompletedTask;
+            }
         }
 
-        var extension = Path.GetExtension(selectedFile.Name)
-            .ToLowerInvariant();
-
-        if (extension != ".png" &&
-            extension != ".jpg" &&
-            extension != ".jpeg")
-        {
-            errorMessage = "Lejohen vetëm formatet PNG dhe JPG.";
-
-            selectedFile = null;
-            selectedFileName = null;
-
-            return;
-        }
-
+        selectedFiles = files;
+        selectedFileNames = files.Select(file => file.Name).ToList();
         errorMessage = null;
-
-        selectedFileName = selectedFile.Name;
+        return Task.CompletedTask;
     }
 
 
@@ -566,5 +623,12 @@
             _ => "•"
         };
     }
+
+    private static string GetStatusText(string? status) => status?.Trim().ToLowerInvariant() switch
+    {
+        "në proces" or "in progress" => "Në proces",
+        "zgjidhur" or "solved" => "Zgjidhur",
+        _ => "Në pritje"
+    };
 
 }

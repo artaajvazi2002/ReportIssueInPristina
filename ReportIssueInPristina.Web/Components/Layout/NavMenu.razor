@@ -1,9 +1,13 @@
 ﻿@implements IDisposable
 
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using ReportIssueInPristina.Application.Services
+@using ReportIssueInPristina.Web.Data
 
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ICurrentUserService CurrentUserService
 
 <header class="main-navbar">
 
@@ -13,29 +17,19 @@
              BRAND
              ========================= -->
 
-        <NavLink href="/"
-                 class="brand"
-                 Match="NavLinkMatch.All"
-                 @onclick="CloseMenu">
+        <NavLink href="/" class="brand" Match="NavLinkMatch.All" @onclick="CloseMenu">
 
             <div class="brand-logo">
 
-                <svg viewBox="0 0 50 58"
-                     fill="none"
-                     aria-hidden="true">
+                <svg viewBox="0 0 50 58" fill="none" aria-hidden="true">
 
-                    <path d="M25 3L43 10V25C43 38 34 49 25 55C16 49 7 38 7 25V10L25 3Z"
-                          stroke="currentColor"
+                    <path d="M25 3L43 10V25C43 38 34 49 25 55C16 49 7 38 7 25V10L25 3Z" stroke="currentColor"
                           stroke-width="3" />
 
                     <path d="M25 14C20.5 14 17 17.5 17 22C17 28 25 35 25 35C25 35 33 28 33 22C33 17.5 29.5 14 25 14Z"
-                          stroke="currentColor"
-                          stroke-width="2.5" />
+                          stroke="currentColor" stroke-width="2.5" />
 
-                    <circle cx="25"
-                            cy="22"
-                            r="2.5"
-                            fill="currentColor" />
+                    <circle cx="25" cy="22" r="2.5" fill="currentColor" />
 
                 </svg>
 
@@ -58,10 +52,7 @@
                  MOBILE MENU BUTTON
                  ========================= -->
 
-            <button class="mobile-menu-button"
-                    type="button"
-                    @onclick="ToggleMenu"
-                    aria-label="Hap menunë"
+            <button class="mobile-menu-button" type="button" @onclick="ToggleMenu" aria-label="Hap menunë"
                     aria-expanded="@isMenuOpen">
 
                 <span></span>
@@ -77,46 +68,49 @@
 
             <nav class="desktop-nav @(isMenuOpen ? "mobile-open" : "")">
 
-                <NavLink href="/"
-                         class="nav-link"
-                         Match="NavLinkMatch.All"
-                         @onclick="CloseMenu">
+                <NavLink href="/" class="nav-link" Match="NavLinkMatch.All" @onclick="CloseMenu">
 
                     Home
 
                 </NavLink>
 
 
-                <NavLink href="/report-issue"
-                         class="nav-link"
-                         @onclick="CloseMenu">
+                <NavLink href="/report-issue" class="nav-link" @onclick="CloseMenu">
 
                     Raporto problem
 
                 </NavLink>
 
 
-                <NavLink href="/issues"
-                         class="nav-link"
-                         @onclick="CloseMenu">
+                <a href="/issues" class="nav-link" @onclick="NavigateToAllIssues" @onclick:preventDefault="true">
 
                     Shiko Raportimet
 
-                </NavLink>
+                </a>
+
+                <a href="/my-issues" class="nav-link" @onclick="NavigateToMyIssues" @onclick:preventDefault="true">
+
+                    Raportimet e mia
+
+                </a>
+
+                <AuthorizeView Roles="Admin">
+                    <NavLink href="/admin/categories" class="nav-link" @onclick="CloseMenu">
+
+                        Kategoritë
+
+                    </NavLink>
+                </AuthorizeView>
 
 
-                <NavLink href="/about"
-                         class="nav-link"
-                         @onclick="CloseMenu">
+                <NavLink href="/about" class="nav-link" @onclick="CloseMenu">
 
                     Rreth projektit
 
                 </NavLink>
 
 
-                <NavLink href="/contact"
-                         class="nav-link"
-                         @onclick="CloseMenu">
+                <NavLink href="/contact" class="nav-link" @onclick="CloseMenu">
 
                     Kontakto
 
@@ -130,20 +124,24 @@
                  ========================= -->
 
             <div class="auth-buttons">
+                <AuthorizeView>
+                    <Authorized>
 
-                <span class="welcome-user">
-                    Mirë se erdhe, @userName 👋
-                </span>
+                        <span class="welcome-user">
+                            Mirë se erdhe, @userName 👋
+                        </span>
+                    </Authorized>
 
-                <button type="button"
-                        class="login-btn"
-                        @onclick="Logout">
-
-                    <span class="auth-icon">↪</span>
-
-                    <span>Dil</span>
-
-                </button>
+                </AuthorizeView>
+                <form method="post" action="/Account/Logout" class="d-inline">
+                    <AntiforgeryToken />
+                    <input name="returnUrl" type="hidden"
+                           value="@NavigationManager.ToBaseRelativePath(NavigationManager.Uri)" />
+                    <button type="submit" class="login-btn">
+                        <span class="auth-icon">↪</span>
+                        <span>Dil</span>
+                    </button>
+                </form>
 
             </div>
         }
@@ -155,8 +153,7 @@
 
             <div class="auth-buttons">
 
-                <a href="/Account/Login"
-                   class="login-btn">
+                <a href="/Account/Login" class="login-btn">
 
                     <span class="auth-icon">♙</span>
 
@@ -165,8 +162,7 @@
                 </a>
 
 
-                <a href="/Account/Register"
-                   class="signup-btn">
+                <a href="/Account/Register" class="signup-btn">
 
                     <span class="auth-icon">+</span>
 
@@ -188,7 +184,7 @@
 
     private bool isAuthenticated;
 
-    private string userName = "Përdorues";
+    private string userName = "";
 
 
     protected override async Task OnInitializedAsync()
@@ -201,6 +197,8 @@
 
     private async Task LoadAuthenticationState()
     {
+        await CurrentUserService.InitializeAsync();
+
         var authState =
             await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
@@ -211,10 +209,10 @@
 
         if (isAuthenticated)
         {
-            userName =
-                user.FindFirst("name")?.Value
-                ?? user.Identity?.Name
-                ?? "Përdorues";
+            userName = CurrentUserService.Name ??
+            user.FindFirst("name")?.Value ??
+            user.Identity?.Name ??
+            "Përdorues";
         }
     }
 
@@ -230,13 +228,22 @@
         isMenuOpen = false;
     }
 
-
-    private async Task Logout()
+    private void NavigateToAllIssues()
     {
-        NavigationManager.NavigateTo(
-            "/Account/Logout",
-            forceLoad: true);
+        CloseMenu();
+        NavigationManager.NavigateTo("/issues", forceLoad: true);
     }
+
+    private void NavigateToMyIssues()
+    {
+        CloseMenu();
+        NavigationManager.NavigateTo("/my-issues", forceLoad: true);
+    }
+
+
+    // Logout is performed by posting a form to /Account/Logout so the server
+    // can perform SignInManager.SignOutAsync inside a real HTTP request where
+    // response headers (cookies) can be modified.
 
 
     private async void OnLocationChanged(

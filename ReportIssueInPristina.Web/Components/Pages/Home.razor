@@ -74,8 +74,7 @@
 
             <div class="hero-image">
 
-                <img src="images/prishtina-hero.jpg"
-                     alt="Pamje e Prishtinës" />
+                <img src="images/prishtina-hero.jpg" alt="Pamje e Prishtinës" />
 
                 <div class="hero-image-overlay"></div>
 
@@ -247,11 +246,9 @@
 
                             <div class="report-image">
 
-                                @if (!string.IsNullOrWhiteSpace(issue.ImageUrl))
+                                @if (issue.ImageUrls.Count > 0)
                                 {
-                                    <img src="@issue.ImageUrl"
-                                         alt="@issue.Title"
-                                         loading="lazy" />
+                                    <img src="@issue.ImageUrls[0]" alt="@issue.Title" loading="lazy" />
                                 }
                                 else
                                 {

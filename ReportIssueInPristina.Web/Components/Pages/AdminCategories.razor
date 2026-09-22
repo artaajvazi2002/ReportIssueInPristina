@@ -1,0 +1,115 @@
+@page "/admin/categories"
+@attribute [Authorize(Roles = "Admin")]
+
+@using ReportIssueInPristina.Application.Services
+@using ReportIssueInPristina.Domain.Models
+
+@inject IReportService ReportService
+
+<PageTitle>Kategoritë - Prishtina Civic Helper</PageTitle>
+
+<div class="admin-categories-page">
+    <div class="admin-categories-header">
+        <span class="page-kicker">ADMINISTRIMI</span>
+        <h1>Kategoritë</h1>
+        <p>Shtoni kategori të reja për raportimet e qytetarëve.</p>
+    </div>
+
+    <div class="admin-categories-layout">
+        <section class="category-form-panel">
+            <h2>Shto kategori</h2>
+
+            <div class="category-form-group">
+                <label for="category-name">Emri i kategorisë</label>
+                <input id="category-name" class="category-input" type="text" @bind="categoryName" @bind:event="oninput"
+                       placeholder="p.sh. Hapësira publike" maxlength="100" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="category-error" role="alert">@errorMessage</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="category-success" role="status">@successMessage</div>
+            }
+
+            <button type="button" class="category-submit" @onclick="AddCategory" disabled="@isSaving">
+                @(isSaving ? "Duke ruajtur..." : "Shto kategorinë")
+            </button>
+        </section>
+
+        <section class="category-list-panel">
+            <div class="category-list-heading">
+                <h2>Kategoritë ekzistuese</h2>
+                <span>@categories.Count</span>
+            </div>
+
+            @if (categories.Count == 0)
+            {
+                <p class="category-empty">Nuk ka kategori të regjistruara.</p>
+            }
+            else
+            {
+                <ul class="category-list">
+                    @foreach (var category in categories)
+                    {
+                        <li>
+                            <span>@category.Name</span>
+                            <small>#@category.Id</small>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+</div>
+
+@code {
+    private List<Category> categories = new();
+    private string categoryName = string.Empty;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isSaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        categories = await ReportService.GetAllCategoriesAsync();
+    }
+
+    private async Task AddCategory()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        var name = categoryName.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            errorMessage = "Ju lutemi vendosni emrin e kategorisë.";
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            await ReportService.CreateCategoryAsync(name);
+            categoryName = string.Empty;
+            successMessage = "Kategoria u shtua me sukses.";
+            await LoadCategories();
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}
