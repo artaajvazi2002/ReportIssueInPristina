@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
 
+@using ReportIssueInPristina.Application.Services
+@inject ICurrentUserService CurrentUserService
+
 <div class="civic-app">
 
     <!-- =========================
@@ -101,3 +104,10 @@
     </span>
 
 </div>
+
+        @code {
+    protected override async Task OnInitializedAsync()
+    {
+        await CurrentUserService.InitializeAsync();
+    }
+}

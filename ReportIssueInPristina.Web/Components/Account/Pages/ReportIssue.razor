@@ -8,6 +8,8 @@
 
 @inject IReportService ReportService
 @inject IJSRuntime JS
+@inject ICurrentUserService CurrentUserService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Raporto një problem - Prishtina Civic Helper</PageTitle>
 
@@ -433,6 +435,12 @@
         errorMessage = null;
         successMessage = null;
 
+        if(CurrentUserService.UserId == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(issue.Title) ||
             issue.CategoryId == 0 ||
             string.IsNullOrWhiteSpace(issue.Location) ||
@@ -476,6 +484,8 @@
 
                 issue.ImageUrl = $"/uploads/{fileName}";
             }
+
+            issue.ApplicationUserId = CurrentUserService.UserId;
 
             await ReportService.CreateReportAsync(issue);
 
@@ -522,7 +532,7 @@
             extension != ".jpg" &&
             extension != ".jpeg")
         {
-            errorMessage = "Lejohen vetëm formatet PNG dhe JPG.";
+            errorMessage = "Lejohen vetëm formatet PNG, JPG dhe JPEG.";
 
             selectedFile = null;
             selectedFileName = null;

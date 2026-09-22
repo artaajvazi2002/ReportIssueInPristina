@@ -7,6 +7,7 @@ using ReportIssueInPristina.Web.Components.Account;
 using ReportIssueInPristina.Web.Data;
 using ReportIssueInPristina.Application.Services;
 using ReportIssueInPristina.Infrastructure.Services;
+using ReportIssueInPristina.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,11 +30,17 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+// Register a DbContext factory so services can create DbContext instances per operation
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+// Also register ApplicationDbContext as scoped by resolving it from the factory so
+// components that expect a scoped ApplicationDbContext (e.g. Identity stores)
+// continue to work without AddDbContext<> which would introduce conflicting lifetimes.
+builder.Services.AddScoped(provider =>
+    provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext());
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddTransient<IReportService, ReportService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -47,6 +54,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -67,14 +76,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 
 // Authorization services for AuthorizeView / AuthorizeRouteView and [Authorize]
-builder.Services.AddAuthorization(options =>
-{
-    // Require authenticated users by default for all pages/components.
-    // Mark public pages with [AllowAnonymous] to exempt them.
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
+builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
@@ -137,6 +139,9 @@ else
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+// Serve static files (wwwroot and static web assets) before authentication/authorization
+// so requests for JS/CSS are not subjected to the global FallbackPolicy.
+app.UseStaticFiles();
 
 app.UseRouting();
 

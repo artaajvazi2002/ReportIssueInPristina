@@ -1,6 +1,8 @@
 ﻿@implements IDisposable
 
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using ReportIssueInPristina.Web.Data
 
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -130,20 +132,23 @@
                  ========================= -->
 
             <div class="auth-buttons">
+                <AuthorizeView>
+                    <Authorized>
 
                 <span class="welcome-user">
                     Mirë se erdhe, @userName 👋
                 </span>
+                    </Authorized>
 
-                <button type="button"
-                        class="login-btn"
-                        @onclick="Logout">
-
-                    <span class="auth-icon">↪</span>
-
-                    <span>Dil</span>
-
-                </button>
+                </AuthorizeView>
+                <form method="post" action="/Account/Logout" class="d-inline">
+                    <AntiforgeryToken />
+                    <input name="returnUrl" type="hidden" value="@NavigationManager.ToBaseRelativePath(NavigationManager.Uri)" />
+                    <button type="submit" class="login-btn">
+                        <span class="auth-icon">↪</span>
+                        <span>Dil</span>
+                    </button>
+                </form>
 
             </div>
         }
@@ -212,8 +217,8 @@
         if (isAuthenticated)
         {
             userName =
-                user.FindFirst("name")?.Value
-                ?? user.Identity?.Name
+             user.Identity?.Name
+                ?? user.FindFirst("name")?.Value
                 ?? "Përdorues";
         }
     }
@@ -231,12 +236,9 @@
     }
 
 
-    private async Task Logout()
-    {
-        NavigationManager.NavigateTo(
-            "/Account/Logout",
-            forceLoad: true);
-    }
+    // Logout is performed by posting a form to /Account/Logout so the server
+    // can perform SignInManager.SignOutAsync inside a real HTTP request where
+    // response headers (cookies) can be modified.
 
 
     private async void OnLocationChanged(

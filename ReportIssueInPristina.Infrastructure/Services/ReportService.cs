@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ReportIssueInPristina.Application.Services;
 using ReportIssueInPristina.Domain.Models;
@@ -10,31 +12,34 @@ namespace ReportIssueInPristina.Infrastructure.Services
 {
    public class ReportService: IReportService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
 
-        public ReportService(ApplicationDbContext context)
+        public ReportService(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<Issue> CreateReportAsync(Issue issue)
         {
-            _context.Issues.Add(issue);
+            await using var db = _contextFactory.CreateDbContext();
+            db.Issues.Add(issue);
 
-            await _context.SaveChangesAsync();
+            await db.SaveChangesAsync();
             return issue;
         }
 
         public async Task<List<Issue>>GetAllReportsAsync()
         {
-            return await _context.Issues
+            await using var db = _contextFactory.CreateDbContext();
+            return await db.Issues
                 .Include(i => i.Category)
                 .OrderByDescending(i => i.DateCreated).ToListAsync();
         }
 
         public async Task<List<Issue>> GetReportByUserAsync(string userId) 
         { 
-            return await _context.Issues
+            await using var db = _contextFactory.CreateDbContext();
+            return await db.Issues
                 .Include(i => i.Category)
                 .Where(i => i.ApplicationUserId == userId)
                 .OrderByDescending(i =>i.DateCreated)
@@ -43,21 +48,23 @@ namespace ReportIssueInPristina.Infrastructure.Services
 
         public async Task<Issue?> GetReportByIdAsync(int id) 
         {
-            return await _context.Issues
+            await using var db = _contextFactory.CreateDbContext();
+            return await db.Issues
                 .Include(i => i.Category)
                 .FirstOrDefaultAsync(i =>i.Id ==id);
         }
 
         public async Task<bool> UpdateStatusAsync(int issueId, string status)
         {
-            var issue = await _context.Issues
+            await using var db = _contextFactory.CreateDbContext();
+            var issue = await db.Issues
                 .FirstOrDefaultAsync(i => i.Id ==issueId);
 
             if (issue == null)
                 return false;
 
             issue.Status = status;
-            await _context.SaveChangesAsync();
+            await db.SaveChangesAsync();
 
             return true;
         }
@@ -65,7 +72,8 @@ namespace ReportIssueInPristina.Infrastructure.Services
 
         public async Task<List<Category>> GetAllCategoriesAsync()
         {
-            return await _context.Categories
+            await using var db = _contextFactory.CreateDbContext();
+            return await db.Categories
                 .OrderBy(c => c.Name)
                 .ToListAsync();
         }
