@@ -1,16 +1,19 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ReportIssueInPristina.Application.Services;
 using ReportIssueInPristina.Web.Data;
+using System.Security.Claims;
 
 namespace ReportIssueInPristina.Web.Services
 {
     public class CurrentUserService : ICurrentUserService, IDisposable
     {
         private readonly AuthenticationStateProvider _authenticationStateProvider;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
+        private readonly ILogger<CurrentUserService> _logger;
 
-        private bool _initialized;
+        private Task? _initializationTask;
 
         public string? UserId { get; private set; }
         public string? Name { get; private set; }
@@ -21,34 +24,50 @@ namespace ReportIssueInPristina.Web.Services
 
         public CurrentUserService(
             AuthenticationStateProvider authenticationStateProvider,
-            UserManager<ApplicationUser> userManager)
+            IDbContextFactory<ApplicationDbContext> contextFactory,
+            ILogger<CurrentUserService> logger)
         {
             _authenticationStateProvider = authenticationStateProvider;
-            _userManager = userManager;
+            _contextFactory = contextFactory;
+            _logger = logger;
 
             _authenticationStateProvider.AuthenticationStateChanged
                 += OnAuthenticationStateChanged;
         }
 
-        public async Task InitializeAsync()
+        public Task InitializeAsync()
         {
-            if (_initialized)
-                return;
+            return _initializationTask ??= InitializeCoreAsync();
+        }
 
-            _initialized = true;
+        private async Task InitializeCoreAsync()
+        {
 
             var authenticationState =
                 await _authenticationStateProvider.GetAuthenticationStateAsync();
 
-            await UpdateUserAsync(authenticationState);
+            try
+            {
+                await UpdateUserAsync(authenticationState);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Loading the current user was canceled.");
+            }
         }
 
         private async void OnAuthenticationStateChanged(
             Task<AuthenticationState> authenticationStateTask)
         {
-            var authenticationState = await authenticationStateTask;
-
-            await UpdateUserAsync(authenticationState);
+            try
+            {
+                var authenticationState = await authenticationStateTask;
+                await UpdateUserAsync(authenticationState);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Updating the current user was canceled.");
+            }
         }
 
         private async Task UpdateUserAsync(
@@ -65,20 +84,31 @@ namespace ReportIssueInPristina.Web.Services
                 return;
             }
 
-            var user = await _userManager.GetUserAsync(principal);
+            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? principal.FindFirstValue("sub");
 
-            if (user == null)
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                ClearUser();
+                return;
+            }
+
+            await using var db = await _contextFactory.CreateDbContextAsync();
+            var user = await db.Users
+                .AsNoTracking()
+                .SingleOrDefaultAsync(user => user.Id == userId);
+
+            if (user is null)
             {
                 ClearUser();
                 return;
             }
 
             UserId = user.Id;
-            Name = user.Name;
-            Email = user.Email;
-
             IsAuthenticated = true;
             IsAdmin = principal.IsInRole("Admin");
+            Name = user.Name;
+            Email = user.Email;
 
             Console.WriteLine(
                 $"CURRENT USER: {Name} | {Email} | Admin: {IsAdmin}");

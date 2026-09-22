@@ -41,6 +41,7 @@ builder.Services.AddScoped(provider =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddTransient<IReportService, ReportService>();
+builder.Services.AddSingleton<IImageStorageService, AzureBlobImageStorageService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -53,7 +54,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddCascadingAuthenticationState();
 
@@ -75,11 +76,16 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.MinimumSameSitePolicy = SameSiteMode.None;
 });
 
-// Authorization services for AuthorizeView / AuthorizeRouteView and [Authorize]
-builder.Services.AddAuthorization();
-
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 var app = builder.Build();
+
+await ApplyMigrationsAsync(app.Services);
 
 using (var scope = app.Services.CreateScope())
 {
@@ -125,8 +131,17 @@ using (var scope = app.Services.CreateScope())
         await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 }
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
+
+static async Task ApplyMigrationsAsync(IServiceProvider services)
+{
+    await using var scope = services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    await dbContext.Database.MigrateAsync();
+}
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
 }
@@ -136,6 +151,7 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+app.UseStaticFiles();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -150,7 +166,7 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapStaticAssets();
+app.MapStaticAssets().AllowAnonymous();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
