@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using ReportIssueInPristina.Web.Data;
-using System.Net;
 
 namespace ReportIssueInPristina.Infrastructure.Services;
 
@@ -19,7 +18,7 @@ public sealed class IdentityEmailSender : IEmailSender<ApplicationUser>
     }
 
     public Task SendConfirmationLinkAsync(ApplicationUser user, string email, string confirmationLink) =>
-        SendAsync(email, "Konfirmoni llogarinë tuaj", $"Për të konfirmuar llogarinë, klikoni <a href=\"{WebUtility.HtmlEncode(confirmationLink)}\">këtu</a>.");
+        SendAsync(email, "Konfirmoni llogarinë tuaj", $"Për të konfirmuar llogarinë, klikoni <a href=\"{confirmationLink}\">këtu</a>.");
 
     public Task SendPasswordResetLinkAsync(ApplicationUser user, string email, string resetLink) =>
         SendAsync(email, "Rivendosni fjalëkalimin", $"Për të rivendosur fjalëkalimin, klikoni <a href=\"{resetLink}\">këtu</a>.");
