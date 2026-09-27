@@ -292,6 +292,156 @@ select.form-control:disabled,
   font-size: 17px;
 }
 
+.location-input {
+  cursor: default;
+  background: #f8fafc;
+}
+
+.location-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 25, 45, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.location-picker-modal {
+  width: min(900px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  padding: 24px;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+}
+
+.location-picker-header,
+.location-picker-actions,
+.location-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.location-picker-header {
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.location-picker-header .page-kicker {
+  margin-bottom: 5px;
+}
+
+.location-picker-header h2 {
+  margin: 0;
+  color: #26384f;
+  font-size: 22px;
+}
+
+.location-picker-close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f4f7;
+  color: #26384f;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.location-search-row {
+  align-items: stretch;
+  margin-bottom: 12px;
+}
+
+.location-search-row .form-control {
+  flex: 1;
+}
+
+.location-search-button,
+.location-current-button,
+.location-cancel-button,
+.location-confirm-button {
+  min-height: 46px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.location-search-button,
+.location-confirm-button {
+  background: #299954;
+  color: white;
+}
+
+.location-current-button {
+  border: 1px solid #cbd7e2;
+  background: white;
+  color: #40546d;
+}
+
+.location-picker-map {
+  width: 100%;
+  height: min(55vh, 500px);
+  min-height: 340px;
+  border: 1px solid #dce4ec;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.location-picker-message {
+  min-height: 20px;
+  margin: 10px 0;
+  color: #596b84;
+  font-size: 13px;
+}
+
+.location-picker-actions {
+  justify-content: flex-end;
+  padding-top: 14px;
+  border-top: 1px solid #edf0f4;
+}
+
+.location-cancel-button {
+  background: #edf2f6;
+  color: #40546d;
+}
+
+@media (max-width: 700px) {
+  .location-picker-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .location-picker-modal {
+    max-height: 96vh;
+    padding: 18px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .location-search-row {
+    flex-wrap: wrap;
+  }
+
+  .location-search-row .form-control {
+    flex-basis: 100%;
+  }
+
+  .location-current-button,
+  .location-search-button {
+    flex: 1;
+  }
+}
+
 /* =========================
    UPLOAD
    ========================= */

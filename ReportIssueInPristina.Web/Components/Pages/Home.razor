@@ -6,6 +6,8 @@
 @using ReportIssueInPristina.Domain.Models
 
 @inject IReportService ReportService
+@inject ICurrentUserService CurrentUserService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Prishtina Civic Helper</PageTitle>
 
@@ -242,7 +244,7 @@
 
                     @foreach (var issue in recentReports)
                     {
-                        <a href="@($"/issues/{issue.Id}")" class="report-card">
+                        <button type="button" class="report-card" @onclick="() => OpenIssue(issue)" aria-label="Shiko raportimin @issue.Id">
 
                             <div class="report-image">
 
@@ -285,7 +287,7 @@
 
                             </div>
 
-                        </a>
+                        </button>
                     }
 
                 </div>
@@ -440,10 +442,16 @@
 
 </div>
 
+<IssueDetailsModal Issue="selectedIssue"
+                   OnClosed="CloseIssue"
+                   OnEdit="EditIssue"
+                   OnDelete="DeleteIssue"
+                   OnStatusChanged="HandleStatusChanged" />
 
 @code {
 
     private List<Issue> recentReports = new();
+    private Issue? selectedIssue;
 
     private int totalReports;
     private int solvedReports;
@@ -509,6 +517,51 @@
         return string.IsNullOrWhiteSpace(status)
             ? "Në pritje"
             : status;
+    }
+
+    private void OpenIssue(Issue issue)
+    {
+        selectedIssue = issue;
+    }
+
+    private void CloseIssue()
+    {
+        selectedIssue = null;
+    }
+
+    private void EditIssue(Issue issue)
+    {
+        selectedIssue = null;
+        NavigationManager.NavigateTo($"/report-issue/{issue.Id}");
+    }
+
+    private async Task DeleteIssue(Issue issue)
+    {
+        selectedIssue = null;
+
+        if (string.IsNullOrWhiteSpace(CurrentUserService.UserId))
+        {
+            await LoadDashboardData();
+            return;
+        }
+
+        if (await ReportService.DeleteReportAsync(issue.Id, CurrentUserService.UserId, CurrentUserService.IsAdmin))
+        {
+            recentReports.RemoveAll(i => i.Id == issue.Id);
+        }
+
+        await LoadDashboardData();
+    }
+
+    private async Task HandleStatusChanged(Issue issue)
+    {
+        var matchingIssue = recentReports.FirstOrDefault(i => i.Id == issue.Id);
+        if (matchingIssue is not null)
+        {
+            matchingIssue.Status = issue.Status;
+        }
+
+        await LoadDashboardData();
     }
 
     private void ToggleMenu()

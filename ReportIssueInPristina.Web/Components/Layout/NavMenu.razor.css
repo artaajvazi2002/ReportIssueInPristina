@@ -17,9 +17,9 @@
 }
 
 .nav-container {
-  width: min(1395px, calc(100% - 48px));
+  width: 100%;
   height: 100%;
-  margin: auto;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -41,32 +41,21 @@
 }
 
 .brand-logo {
-  width: 40px;
-  height: 47px;
+  position: relative;
+  width: 120px;
+  height: 80px;
+  overflow: hidden;
 }
 
-.brand-logo svg {
-  width: 100%;
-  height: 100%;
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-  font-size: 21px;
-  letter-spacing: -0.5px;
-}
-
-.brand-text strong {
-  font-weight: 750;
-}
-
-.brand-text span {
-  color: #299954;
-  font-weight: 650;
-  font-size: 16px;
-  margin-top: 3px;
+.brand-logo img {
+  position: absolute;
+  top: 50%;
+  left: -33.333%;
+  width: 150%;
+  max-width: none;
+  height: auto;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
 }
 
 /* =========================================
@@ -80,6 +69,12 @@
   margin-left: auto;
 }
 
+.nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .nav-link {
   position: relative;
   color: #334763;
@@ -88,11 +83,72 @@
   font-weight: 600;
   padding: 31px 0 27px;
   transition: color 0.2s ease;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .nav-link:hover,
-.nav-link.active {
+.nav-link.active,
+.nav-dropdown:hover .nav-dropdown-toggle,
+.nav-dropdown:focus-within .nav-dropdown-toggle {
   color: #299954;
+}
+
+.nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 31px 0 27px;
+}
+
+.dropdown-caret {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.nav-dropdown:hover .dropdown-caret,
+.nav-dropdown:focus-within .dropdown-caret {
+  transform: rotate(180deg);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% - 8px);
+  left: 0;
+  min-width: 210px;
+  display: none;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e6ebf1;
+  border-radius: 12px;
+  box-shadow: 0 14px 28px rgba(20, 45, 80, 0.12);
+  padding: 8px;
+  z-index: 20;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu {
+  display: flex;
+}
+
+.dropdown-link {
+  color: #334763;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.dropdown-link:hover,
+.dropdown-link.active {
+  color: #299954;
+  background: #edf9f1;
 }
 
 /* =========================================
@@ -116,8 +172,16 @@
 
 .auth-buttons {
   display: flex;
+  align-items: center;
   gap: 9px;
   flex-shrink: 0;
+}
+
+.welcome-user {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  white-space: nowrap;
 }
 
 .login-btn,
@@ -212,7 +276,7 @@
   }
 
   .nav-container {
-    width: calc(100% - 32px);
+    padding: 0 16px;
   }
 
   .mobile-menu-button {
@@ -245,6 +309,36 @@
     border-radius: 6px;
   }
 
+  .nav-dropdown {
+    display: block;
+  }
+
+  .nav-dropdown-toggle {
+    width: 100%;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .nav-dropdown:hover .nav-dropdown-menu,
+  .nav-dropdown:focus-within .nav-dropdown-menu {
+    display: none;
+  }
+
+  .nav-dropdown.open .nav-dropdown-menu {
+    position: static;
+    display: flex;
+    min-width: 0;
+    margin: 0 0 4px;
+    padding: 4px 0 4px 12px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .dropdown-link {
+    padding: 10px 12px;
+  }
+
   .nav-link:hover {
     background: #f4f8f5;
   }
@@ -263,17 +357,9 @@
    ========================================= */
 
 @media (max-width: 600px) {
-  .brand-text {
-    font-size: 18px;
-  }
-
-  .brand-text span {
-    font-size: 13px;
-  }
-
   .brand-logo {
-    width: 34px;
-    height: 41px;
+    width: 100px;
+    height: 70px;
   }
 }
 
@@ -283,19 +369,11 @@
 
 @media (max-width: 380px) {
   .nav-container {
-    width: calc(100% - 24px);
-  }
-
-  .brand-text {
-    font-size: 17px;
-  }
-
-  .brand-text span {
-    font-size: 12px;
+    padding: 0 12px;
   }
 
   .brand-logo {
-    width: 31px;
-    height: 38px;
+    width: 90px;
+    height: 65px;
   }
 }

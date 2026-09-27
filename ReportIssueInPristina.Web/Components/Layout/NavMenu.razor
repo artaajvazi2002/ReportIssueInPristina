@@ -20,27 +20,7 @@
         <NavLink href="/" class="brand" Match="NavLinkMatch.All" @onclick="CloseMenu">
 
             <div class="brand-logo">
-
-                <svg viewBox="0 0 50 58" fill="none" aria-hidden="true">
-
-                    <path d="M25 3L43 10V25C43 38 34 49 25 55C16 49 7 38 7 25V10L25 3Z" stroke="currentColor"
-                          stroke-width="3" />
-
-                    <path d="M25 14C20.5 14 17 17.5 17 22C17 28 25 35 25 35C25 35 33 28 33 22C33 17.5 29.5 14 25 14Z"
-                          stroke="currentColor" stroke-width="2.5" />
-
-                    <circle cx="25" cy="22" r="2.5" fill="currentColor" />
-
-                </svg>
-
-            </div>
-
-            <div class="brand-text">
-
-                <strong>Prishtina</strong>
-
-                <span>Civic Helper</span>
-
+                <img src="/images/logo.png" alt="Prishtina Civic Helper" />
             </div>
 
         </NavLink>
@@ -70,7 +50,7 @@
 
                 <NavLink href="/" class="nav-link" Match="NavLinkMatch.All" @onclick="CloseMenu">
 
-                    Home
+                    Kryefaqja
 
                 </NavLink>
 
@@ -82,17 +62,29 @@
                 </NavLink>
 
 
-                <a href="/issues" class="nav-link" @onclick="NavigateToAllIssues" @onclick:preventDefault="true">
+                <div class="nav-dropdown @(isReportsMenuOpen ? "open" : "")">
+                    <button type="button" class="nav-link nav-dropdown-toggle" @onclick="ToggleReportsMenu"
+                            aria-expanded="@isReportsMenuOpen" aria-controls="reports-submenu">
+                        Raportimet
+                        <span class="dropdown-caret">▾</span>
+                    </button>
 
-                    Shiko Raportimet
+                    <div class="nav-dropdown-menu" id="reports-submenu">
+                        <a href="/issues" class="dropdown-link" @onclick="NavigateToAllIssues"
+                           @onclick:preventDefault="true">
+                            Shiko Raportimet
+                        </a>
 
-                </a>
+                        <a href="/map" class="dropdown-link" @onclick="CloseMenu">
+                            Harta
+                        </a>
 
-                <a href="/my-issues" class="nav-link" @onclick="NavigateToMyIssues" @onclick:preventDefault="true">
-
-                    Raportimet e mia
-
-                </a>
+                        <a href="/my-issues" class="dropdown-link" @onclick="NavigateToMyIssues"
+                           @onclick:preventDefault="true">
+                            Raportimet e mia
+                        </a>
+                    </div>
+                </div>
 
                 <AuthorizeView Roles="Admin">
                     <NavLink href="/admin/categories" class="nav-link" @onclick="CloseMenu">
@@ -182,6 +174,8 @@
 
     private bool isMenuOpen;
 
+    private bool isReportsMenuOpen;
+
     private bool isAuthenticated;
 
     private string userName = "";
@@ -220,12 +214,19 @@
     private void ToggleMenu()
     {
         isMenuOpen = !isMenuOpen;
+        isReportsMenuOpen = false;
+    }
+
+    private void ToggleReportsMenu()
+    {
+        isReportsMenuOpen = !isReportsMenuOpen;
     }
 
 
     private void CloseMenu()
     {
         isMenuOpen = false;
+        isReportsMenuOpen = false;
     }
 
     private void NavigateToAllIssues()
@@ -251,6 +252,7 @@
         LocationChangedEventArgs e)
     {
         isMenuOpen = false;
+        isReportsMenuOpen = false;
 
         await LoadAuthenticationState();
 

@@ -9,6 +9,8 @@ namespace ReportIssueInPristina.Domain.Models
         public string? Title { get; set; }
         public string? Description { get; set; }
         public string? Location { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public List<string> ImageUrls { get; set; } = new();
         public string? Status { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.Now;
@@ -18,5 +20,6 @@ namespace ReportIssueInPristina.Domain.Models
         public virtual Category? Category { get; set; }
         //Foreign Key
         public string? ApplicationUserId { get; set; }
+        public ICollection<IssueStatusUpdate> StatusHistory { get; set; } = new List<IssueStatusUpdate>();
     }
 }

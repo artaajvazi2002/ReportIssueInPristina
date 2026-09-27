@@ -1,0 +1,211 @@
+@using ReportIssueInPristina.Application.Services
+@using ReportIssueInPristina.Domain.Models
+
+@inject IReportService ReportService
+@inject ICurrentUserService CurrentUserService
+
+@if (Issue is not null)
+{
+    <div class="issue-details-backdrop" @onclick="CloseAsync">
+        <div class="issue-details-modal" @onclick:stopPropagation="true">
+            <button type="button" class="issue-details-close" @onclick="CloseAsync" aria-label="Mbyll">×</button>
+            <div class="issue-details-image">
+                @if (Issue.ImageUrls.Count > 0)
+                {
+                    <img src="@Issue.ImageUrls[currentImageIndex]" alt="@Issue.Title" />
+                    @if (Issue.ImageUrls.Count > 1)
+                    {
+                        <button type="button" class="issue-details-carousel previous" @onclick="ShowPreviousImage"
+                                aria-label="Fotoja e mëparshme">‹</button>
+                        <button type="button" class="issue-details-carousel next" @onclick="ShowNextImage"
+                                aria-label="Fotoja tjetër">›</button>
+                        <span class="issue-details-counter">@(currentImageIndex + 1) / @Issue.ImageUrls.Count</span>
+                    }
+                }
+            </div>
+            <div class="issue-details-content">
+                <div class="issue-details-top">
+                    <span class="issue-details-id">#@Issue.Id</span>
+                    <span class="issue-details-status @GetStatusClass(Issue.Status)">@GetStatusText(Issue.Status)</span>
+                </div>
+                <span class="issue-details-category">@(Issue.Category?.Name ?? "Pa kategori")</span>
+                <h2>@Issue.Title</h2>
+                <div class="issue-details-location">⌖ @Issue.Location</div>
+                <div class="issue-details-description">
+                    <h3>Përshkrimi</h3>
+                    <p>@Issue.Description</p>
+                </div>
+                <section class="issue-details-history">
+                    <h3>Historiku i statusit</h3>
+                    @if (statusHistory.Count == 0)
+                    {
+                        <p class="issue-details-empty">Nuk ka ende përditësime të statusit.</p>
+                    }
+                    else
+                    {
+                        <ol>
+                            @foreach (var update in statusHistory)
+                            {
+                                <li>
+                                    <div class="issue-details-history-heading">
+                                        <strong>@update.NewStatus</strong>
+                                        <time>@update.ChangedAt.ToString("dd MMM yyyy, HH:mm 'UTC'")</time>
+                                    </div>
+                                    <p>@(update.PreviousStatus ?? "Raportimi u krijua") → @update.NewStatus nga
+                                        @update.ChangedByName</p>
+                                        @if (!string.IsNullOrWhiteSpace(update.Note))
+                                        {
+                                            <p class="issue-details-note">@update.Note</p>
+                                        }
+                                    </li>
+                                }
+                            </ol>
+                        }
+                    </section>
+                    <div class="issue-details-actions">
+                        @if (CanEdit && OnEdit.HasDelegate)
+                        {
+                            <button type="button" class="issue-details-action-button edit-action" @onclick="EditAsync"
+                                    aria-label="Ndrysho raportimin" title="Ndrysho">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 20h4L19 9l-4-4L4 16v4Z"></path>
+                                    <path d="m13.5 6.5 4 4"></path>
+                                </svg>
+                                <span>Ndrysho</span>
+                            </button>
+                        }
+                        @if (CanDelete && OnDelete.HasDelegate)
+                        {
+                            <button type="button" class="issue-details-action-button delete-action" @onclick="DeleteAsync"
+                                    aria-label="Fshi raportimin" title="Fshi">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 7h16"></path>
+                                    <path d="M10 11v6M14 11v6"></path>
+                                    <path d="M6 7l1 13h10l1-13M9 7V4h6v3"></path>
+                                </svg>
+                                <span>Fshi</span>
+                            </button>
+                        }
+                        @if (CurrentUserService.IsAdmin)
+                        {
+                            <div class="issue-details-status-editor">
+                                <label for="issue-details-status">Statusi</label>
+                                <select id="issue-details-status" @bind="selectedStatus">
+                                    <option value="Në pritje">Në pritje</option>
+                                    <option value="Në proces">Në proces</option>
+                                    <option value="Zgjidhur">Zgjidhur</option>
+                                </select>
+                                <label for="issue-details-note">Shënim (opsional)</label>
+                                <textarea id="issue-details-note" @bind="statusNote" maxlength="500" rows="3"
+                                          placeholder="Shpjegoni përditësimin..."></textarea>
+                                <button type="button" class="issue-details-save-status" @onclick="SaveStatusAsync"
+                                        disabled="@isSavingStatus">
+                                    @(isSavingStatus ? "Duke ruajtur..." : "Ruaj statusin")
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+@code {
+    [Parameter]
+    public Issue? Issue { get; set; }
+
+    [Parameter]
+    public EventCallback OnClosed { get; set; }
+
+    [Parameter]
+    public EventCallback<Issue> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<Issue> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<Issue> OnStatusChanged { get; set; }
+
+    private readonly List<IssueStatusUpdate> statusHistory = new();
+    private string selectedStatus = "Në pritje";
+    private string statusNote = string.Empty;
+    private bool isSavingStatus;
+    private int currentImageIndex;
+    private int? loadedIssueId;
+
+    private bool CanEdit => Issue?.ApplicationUserId == CurrentUserService.UserId;
+    private bool CanDelete => CurrentUserService.IsAdmin || CanEdit;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Issue is null || Issue.Id == loadedIssueId)
+            return;
+
+        loadedIssueId = Issue.Id;
+        currentImageIndex = 0;
+        selectedStatus = GetStatusText(Issue.Status);
+        statusNote = string.Empty;
+        statusHistory.Clear();
+        statusHistory.AddRange(await ReportService.GetStatusHistoryAsync(Issue.Id));
+    }
+
+    private Task CloseAsync() => OnClosed.InvokeAsync();
+    private Task EditAsync() => OnEdit.InvokeAsync(Issue!);
+    private Task DeleteAsync() => OnDelete.InvokeAsync(Issue!);
+
+    private async Task SaveStatusAsync()
+    {
+        if (Issue is null || !CurrentUserService.IsAdmin || isSavingStatus)
+            return;
+
+        var userId = CurrentUserService.UserId;
+        var userName = CurrentUserService.Name ?? CurrentUserService.Email ?? userId;
+        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userName))
+            return;
+
+        isSavingStatus = true;
+        try
+        {
+            if (await ReportService.UpdateStatusAsync(Issue.Id, selectedStatus, true, userId, userName, statusNote))
+            {
+                Issue.Status = selectedStatus;
+                statusNote = string.Empty;
+                statusHistory.Clear();
+                statusHistory.AddRange(await ReportService.GetStatusHistoryAsync(Issue.Id));
+                await OnStatusChanged.InvokeAsync(Issue);
+            }
+        }
+        finally
+        {
+            isSavingStatus = false;
+        }
+    }
+
+    private void ShowPreviousImage()
+    {
+        if (Issue is null || Issue.ImageUrls.Count < 2)
+            return;
+        currentImageIndex = currentImageIndex == 0 ? Issue.ImageUrls.Count - 1 : currentImageIndex - 1;
+    }
+
+    private void ShowNextImage()
+    {
+        if (Issue is null || Issue.ImageUrls.Count < 2)
+            return;
+        currentImageIndex = (currentImageIndex + 1) % Issue.ImageUrls.Count;
+    }
+
+    private static string GetStatusClass(string? status) => GetStatusText(status).ToLowerInvariant() switch
+    {
+        "në proces" => "progress",
+        "zgjidhur" => "solved",
+        _ => "pending"
+    };
+
+    private static string GetStatusText(string? status) => status?.Trim().ToLowerInvariant() switch
+    {
+        "në proces" or "in progress" => "Në proces",
+        "zgjidhur" or "solved" => "Zgjidhur",
+        _ => "Në pritje"
+    };
+}

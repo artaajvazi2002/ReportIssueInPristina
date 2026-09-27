@@ -1,5 +1,6 @@
 @page "/issues"
 @page "/my-issues"
+@page "/issues/{IssueId:int}"
 
 @using ReportIssueInPristina.Application.Services
 @using ReportIssueInPristina.Domain.Models
@@ -150,95 +151,29 @@
     }
 </div>
 
-@if (selectedIssue is not null)
-{
-    <div class="modal-backdrop" @onclick="CloseIssue">
-        <div class="issue-modal" @onclick:stopPropagation="true">
-            <button type="button" class="modal-close" @onclick="CloseIssue" aria-label="Mbyll">×</button>
-            <div class="modal-image">
-                @if (selectedIssue.ImageUrls.Count > 0)
-                {
-                    <img src="@selectedIssue.ImageUrls[currentImageIndex]" alt="@selectedIssue.Title" />
-                    @if (selectedIssue.ImageUrls.Count > 1)
-                    {
-                        <button type="button" class="image-carousel-button previous" @onclick="ShowPreviousImage"
-                                aria-label="Fotoja e mëparshme">‹</button>
-                        <button type="button" class="image-carousel-button next" @onclick="ShowNextImage"
-                                aria-label="Fotoja tjetër">›</button>
-                        <span class="image-counter">@(currentImageIndex + 1) / @selectedIssue.ImageUrls.Count</span>
-                    }
-                }
-            </div>
-            <div class="modal-content">
-                <div class="modal-top">
-                    <span class="modal-id">#@selectedIssue.Id</span>
-                    <span
-                    class="status-badge @GetStatusClass(selectedIssue.Status)">@GetStatusText(selectedIssue.Status)</span>
-                </div>
-                <span class="modal-category">@(selectedIssue.Category?.Name ?? "Pa kategori")</span>
-                <h2>@selectedIssue.Title</h2>
-                <div class="modal-location">⌖ @selectedIssue.Location</div>
-                <div class="modal-description">
-                    <h3>Përshkrimi</h3>
-                    <p>@selectedIssue.Description</p>
-                </div>
-                <div class="modal-actions">
-                    @if (CanEdit(selectedIssue))
-                    {
-                        <button type="button" class="icon-action edit-action" @onclick="() => EditIssue(selectedIssue)"
-                                aria-label="Ndrysho raportimin" title="Ndrysho">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M4 20h4L19 9l-4-4L4 16v4Z"></path>
-                                <path d="m13.5 6.5 4 4"></path>
-                            </svg>
-                        </button>
-                    }
-                    @if (CanDelete(selectedIssue))
-                    {
-                        <button type="button" class="icon-action delete-action" @onclick="() => DeleteIssue(selectedIssue)"
-                                aria-label="Fshi raportimin" title="Fshi">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M4 7h16"></path>
-                                <path d="M10 11v6M14 11v6"></path>
-                                <path d="M6 7l1 13h10l1-13M9 7V4h6v3"></path>
-                            </svg>
-                        </button>
-                    }
-                    @if (CurrentUserService.IsAdmin)
-                    {
-                        <div class="status-editor">
-                            <label for="issue-status">Statusi</label>
-                            <select id="issue-status" @bind="selectedStatusForEdit">
-                                <option value="Në pritje">Në pritje</option>
-                                <option value="Në proces">Në proces</option>
-                                <option value="Zgjidhur">Zgjidhur</option>
-                            </select>
-                            <button type="button" class="status-save-button" @onclick="SaveStatus">Ruaj</button>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-}
+<IssueDetailsModal Issue="selectedIssue"
+                   OnClosed="CloseIssue"
+                   OnEdit="EditIssue"
+                   OnDelete="DeleteIssue"
+                   OnStatusChanged="HandleStatusChanged" />
 
-@if (issueToDelete is not null)
-{
-    <div class="delete-dialog-backdrop" @onclick="CancelDelete">
-        <div class="delete-dialog" @onclick:stopPropagation="true" role="dialog" aria-modal="true"
-             aria-labelledby="delete-dialog-title">
-            <div class="delete-dialog-icon">!</div>
-            <h2 id="delete-dialog-title">Fshi raportimin?</h2>
-            <p>Ky veprim do të fshijë raportimin dhe të gjitha fotot e tij. Nuk mund të zhbëhet.</p>
-            <div class="delete-dialog-actions">
-                <button type="button" class="dialog-cancel-button" @onclick="CancelDelete">Anulo</button>
-                <button type="button" class="dialog-delete-button" @onclick="ConfirmDelete" disabled="@isDeleting">
-                    @(isDeleting ? "Duke fshirë..." : "Fshi raportimin")
-                </button>
+    @if (issueToDelete is not null)
+    {
+        <div class="delete-dialog-backdrop" @onclick="CancelDelete">
+            <div class="delete-dialog" @onclick:stopPropagation="true" role="dialog" aria-modal="true"
+                 aria-labelledby="delete-dialog-title">
+                <div class="delete-dialog-icon">!</div>
+                <h2 id="delete-dialog-title">Fshi raportimin?</h2>
+                <p>Ky veprim do të fshijë raportimin dhe të gjitha fotot e tij. Nuk mund të zhbëhet.</p>
+                <div class="delete-dialog-actions">
+                    <button type="button" class="dialog-cancel-button" @onclick="CancelDelete">Anulo</button>
+                    <button type="button" class="dialog-delete-button" @onclick="ConfirmDelete" disabled="@isDeleting">
+                        @(isDeleting ? "Duke fshirë..." : "Fshi raportimin")
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-}
+    }
 
 @code {
     private List<Issue> allIssues = new();
@@ -254,7 +189,10 @@
     private Issue? issueToDelete;
     private bool isDeleting;
     private int currentImageIndex;
-    private string selectedStatusForEdit = "Në pritje";
+    private List<IssueStatusUpdate> statusHistory = new();
+
+    [Parameter]
+    public int? IssueId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -280,6 +218,14 @@
         categories = allIssues.Where(i => i.Category?.Name != null).Select(i => i.Category!.Name!).Distinct().OrderBy(n =>
 n).ToList();
         ApplyFilters();
+
+        if (IssueId.HasValue)
+        {
+            var issueToOpen = allIssues.FirstOrDefault(issue => issue.Id == IssueId.Value);
+            if (issueToOpen is not null)
+            await OpenIssue(issueToOpen);
+        }
+
         isLoading = false;
     }
 
@@ -311,14 +257,35 @@ n).ToList();
         ApplyFilters();
     }
 
-    private void OpenIssue(Issue issue)
+    private async Task OpenIssue(Issue issue)
     {
         selectedIssue = issue;
         currentImageIndex = 0;
-        selectedStatusForEdit = GetStatusText(issue.Status);
+        statusHistory = await ReportService.GetStatusHistoryAsync(issue.Id);
     }
 
-    private void CloseIssue() => selectedIssue = null;
+    private void CloseIssue()
+    {
+        selectedIssue = null;
+        statusHistory.Clear();
+    }
+
+    private async Task HandleStatusChanged(Issue issue)
+    {
+        var existingIssue = allIssues.FirstOrDefault(i => i.Id == issue.Id);
+        if (existingIssue is not null)
+        {
+            existingIssue.Status = issue.Status;
+        }
+
+        if (selectedIssue?.Id == issue.Id)
+        {
+            selectedIssue = issue;
+        }
+
+        statusHistory = await ReportService.GetStatusHistoryAsync(issue.Id);
+        ApplyFilters();
+    }
 
     private bool CanEdit(Issue issue) => CurrentUserService.UserId == issue.ApplicationUserId;
     private bool CanDelete(Issue issue) => CurrentUserService.IsAdmin || CanEdit(issue);
@@ -356,17 +323,6 @@ n).ToList();
         {
             issueToDelete = null;
             isDeleting = false;
-        }
-    }
-
-    private async Task SaveStatus()
-    {
-        if (selectedIssue is null || !CurrentUserService.IsAdmin)
-            return;
-        if (await ReportService.UpdateStatusAsync(selectedIssue.Id, selectedStatusForEdit, true))
-        {
-            selectedIssue.Status = selectedStatusForEdit;
-            ApplyFilters();
         }
     }
 

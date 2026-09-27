@@ -10,6 +10,8 @@ namespace ReportIssueInPristina.Web.Data
     {
         public DbSet<Issue> Issues { get; set; }
 
+        public DbSet<IssueStatusUpdate> IssueStatusUpdates { get; set; }
+
         public DbSet<Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -37,6 +39,11 @@ namespace ReportIssueInPristina.Web.Data
                 .HasOne<ApplicationUser>()
                 .WithMany(u => u.Issues)
                 .HasForeignKey(i => i.ApplicationUserId);
+
+            builder.Entity<IssueStatusUpdate>()
+                .HasOne(update => update.Issue)
+                .WithMany(issue => issue.StatusHistory)
+                .HasForeignKey(update => update.IssueId);
         }
 
     }

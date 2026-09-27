@@ -145,7 +145,7 @@
                     </label>
 
                     <input type="text" class="form-control" placeholder="Specifikoni kategorinë"
-                           disabled="@(issue.CategoryId != 6)" />
+                           disabled="@(!IsOtherCategory)" />
 
                 </div>
 
@@ -162,14 +162,16 @@
                     <div class="status-stepper" role="group" aria-label="Ndrysho statusin">
                         @foreach (var status in statuses)
                         {
-                            <button type="button"
-                                    class="status-step @(selectedEditStatus == status ? "selected" : "")"
+                            <button type="button" class="status-step @(selectedEditStatus == status ? "selected" : "")"
                                     @onclick="() => selectedEditStatus = status">
                                 <span class="status-dot"></span>
                                 <span>@status</span>
                             </button>
                         }
                     </div>
+                    <label for="status-update-note">Shënim (opsional)</label>
+                    <textarea id="status-update-note" class="form-control" @bind="statusUpdateNote" maxlength="500" rows="3"
+                              placeholder="Shpjegoni përditësimin..."></textarea>
                 </div>
             }
 
@@ -181,8 +183,8 @@
                     Vendndodhja <span>*</span>
                 </label>
 
-                <input type="text" class="form-control" @bind="issue.Location"
-                       placeholder="p.sh. Bulevardi Nënë Tereza, Prishtinë" />
+                <input type="text" class="form-control location-input" value="@issue.Location"
+                       placeholder="Zgjidhni vendndodhjen në hartë" readonly />
 
                 @if (showValidation && string.IsNullOrWhiteSpace(issue.Location))
                 {
@@ -191,11 +193,11 @@
                     </small>
                 }
 
-                <button type="button" class="location-button" @onclick="UseCurrentLocation">
+                <button type="button" class="location-button" @onclick="OpenLocationPicker">
 
                     <span>⌖</span>
 
-                    Përdor vendndodhjen time
+                    Zgjidhni vendndodhjen në hartë
 
                 </button>
 
@@ -411,6 +413,41 @@
 
 </div>
 
+@if (showLocationPicker)
+{
+    <div class="location-picker-backdrop" @onclick="CloseLocationPicker">
+        <div class="location-picker-modal" @onclick:stopPropagation="true" role="dialog" aria-modal="true"
+             aria-labelledby="location-picker-title">
+            <div class="location-picker-header">
+                <div>
+                    <span class="page-kicker">VENDNDODHJA</span>
+                    <h2 id="location-picker-title">Zgjidhni në hartë</h2>
+                </div>
+                <button type="button" class="location-picker-close" @onclick="CloseLocationPicker" aria-label="Mbyll">×</button>
+            </div>
+
+            <div class="location-search-row">
+                <input class="form-control" @bind="locationSearchText" placeholder="Kërko adresë në Prishtinë..."
+                       @onkeydown="HandleLocationSearchKeyDown" />
+                <button type="button" class="location-search-button" @onclick="SearchLocation">
+                    Kërko
+                </button>
+                <button type="button" class="location-current-button" @onclick="UseCurrentLocation">
+                    Përdor vendndodhjen time
+                </button>
+            </div>
+
+            <div id="location-picker-map" class="location-picker-map"></div>
+            <p class="location-picker-message">@locationPickerMessage</p>
+
+            <div class="location-picker-actions">
+                <button type="button" class="location-cancel-button" @onclick="CloseLocationPicker">Anulo</button>
+                <button type="button" class="location-confirm-button" @onclick="ConfirmLocation">Përdor këtë vendndodhje</button>
+            </div>
+        </div>
+    </div>
+}
+
 
 @code {
 
@@ -437,6 +474,13 @@
     private bool CanEditIssue => issue.ApplicationUserId == CurrentUserService.UserId;
     private readonly string[] statuses = { "Në pritje", "Në proces", "Zgjidhur" };
     private string selectedEditStatus = "Në pritje";
+    private string statusUpdateNote = string.Empty;
+    private bool showLocationPicker;
+    private string locationSearchText = string.Empty;
+    private string locationPickerMessage = "Klikoni në hartë ose tërhiqeni shënjuesin për të zgjedhur vendndodhjen.";
+    private bool IsOtherCategory => categories
+        .FirstOrDefault(category => category.Id == issue.CategoryId)?.Name
+        ?.Equals("Tjetër", StringComparison.OrdinalIgnoreCase) == true;
 
 
     protected override async Task OnInitializedAsync()
@@ -477,8 +521,13 @@
 
         if (IsEditMode && CurrentUserService.IsAdmin && !CanEditIssue)
         {
-            if (await ReportService.UpdateStatusAsync(issue.Id, selectedEditStatus, true))
+            if (await ReportService.UpdateStatusAsync(issue.Id, selectedEditStatus, true,
+                    CurrentUserService.UserId, CurrentUserService.Name ?? CurrentUserService.Email ?? CurrentUserService.UserId,
+                    statusUpdateNote))
+            {
                 successMessage = "Statusi u përditësua me sukses.";
+                statusUpdateNote = string.Empty;
+            }
             else
                 errorMessage = "Statusi nuk mund të përditësohej.";
 
@@ -527,11 +576,16 @@
                 }
 
                 if (CurrentUserService.IsAdmin &&
-                    !await ReportService.UpdateStatusAsync(issue.Id, selectedEditStatus, true))
+                    !await ReportService.UpdateStatusAsync(issue.Id, selectedEditStatus, true,
+                        CurrentUserService.UserId, CurrentUserService.Name ?? CurrentUserService.Email ?? CurrentUserService.UserId,
+                        statusUpdateNote))
                 {
                     errorMessage = "Statusi nuk mund të përditësohej.";
                     return;
                 }
+
+                if (CurrentUserService.IsAdmin)
+                    statusUpdateNote = string.Empty;
 
                 issue.Status = CurrentUserService.IsAdmin
                     ? selectedEditStatus
@@ -593,20 +647,77 @@
     }
 
 
+    private async Task OpenLocationPicker()
+    {
+        showLocationPicker = true;
+        locationSearchText = string.Empty;
+        locationPickerMessage = "Klikoni në hartë ose tërhiqeni shënjuesin për të zgjedhur vendndodhjen.";
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
+        await JS.InvokeVoidAsync("initializeLocationPicker", "location-picker-map", issue.Latitude, issue.Longitude);
+    }
+
+    private async Task SearchLocation()
+    {
+        if (string.IsNullOrWhiteSpace(locationSearchText))
+        {
+            locationPickerMessage = "Shkruani një adresë për të kërkuar.";
+            return;
+        }
+
+        var result = await JS.InvokeAsync<BrowserLocation?>("searchLocationPicker", locationSearchText);
+        locationPickerMessage = result is null
+            ? "Adresa nuk u gjet brenda Prishtinës."
+            : result.Location;
+    }
+
+    private async Task HandleLocationSearchKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+            await SearchLocation();
+    }
+
     private async Task UseCurrentLocation()
     {
         try
         {
-            var location = await JS.InvokeAsync<string>(
-                "getCurrentLocation");
-
-            issue.Location = location;
+            var location = await JS.InvokeAsync<BrowserLocation?>("locateLocationPicker");
+            locationPickerMessage = location is null
+                ? "Vendndodhja juaj nuk është brenda Prishtinës."
+                : location.Location;
         }
         catch
         {
-            errorMessage =
-                "Nuk mund të merrej vendndodhja juaj. Ju lutemi shkruajeni manualisht.";
+            locationPickerMessage = "Nuk mund të merrej vendndodhja juaj.";
         }
+    }
+
+    private async Task ConfirmLocation()
+    {
+        var location = await JS.InvokeAsync<BrowserLocation?>("getLocationPickerSelection");
+        if (location is null)
+        {
+            locationPickerMessage = "Zgjidhni një pikë në hartë për të vazhduar.";
+            return;
+        }
+
+        issue.Location = location.Location;
+        issue.Latitude = location.Latitude;
+        issue.Longitude = location.Longitude;
+        await CloseLocationPicker();
+    }
+
+    private async Task CloseLocationPicker()
+    {
+        await JS.InvokeVoidAsync("disposeLocationPicker");
+        showLocationPicker = false;
+    }
+
+    private sealed class BrowserLocation
+    {
+        public string Location { get; set; } = string.Empty;
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 
 

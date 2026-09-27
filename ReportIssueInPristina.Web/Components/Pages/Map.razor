@@ -1,0 +1,80 @@
+@page "/map"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@using Microsoft.JSInterop
+@using ReportIssueInPristina.Application.Services
+@using ReportIssueInPristina.Domain.Models
+
+@inject IReportService ReportService
+@inject IJSRuntime JS
+
+<PageTitle>Harta e raportimeve - Prishtina Civic Helper</PageTitle>
+
+<div class="map-page">
+    <header class="map-header">
+        <div>
+            <span class="page-kicker">HARTA E QYTETIT</span>
+            <h1>Raportimet në Prishtinë</h1>
+            <p>Shikoni problemet e raportuara sipas vendndodhjes dhe dalloni zonat me më shumë raportime.</p>
+        </div>
+        <div class="map-count">
+            <strong>@mappedIssues.Count</strong>
+            <span>raportime në hartë</span>
+        </div>
+    </header>
+
+    @if (isLoading)
+    {
+        <div class="map-loading">Duke ngarkuar hartën...</div>
+    }
+    else if (mappedIssues.Count == 0)
+    {
+        <div class="map-empty">
+            <h2>Nuk ka raportime me koordinata</h2>
+            <p>Raportimet do të shfaqen këtu pasi të dërgohen me vendndodhje.</p>
+        </div>
+    }
+    else
+    {
+        <div id="issue-map" class="issue-map" aria-label="Harta e raportimeve"></div>
+    }
+</div>
+
+@code {
+    private const double MinimumLatitude = 42.58;
+    private const double MaximumLatitude = 42.75;
+    private const double MinimumLongitude = 21.08;
+    private const double MaximumLongitude = 21.30;
+
+    private List<Issue> mappedIssues = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var issues = await ReportService.GetAllReportsAsync();
+        mappedIssues = issues
+            .Where(issue => issue.Latitude >= MinimumLatitude && issue.Latitude <= MaximumLatitude &&
+                           issue.Longitude >= MinimumLongitude && issue.Longitude <= MaximumLongitude)
+            .ToList();
+        isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || mappedIssues.Count == 0)
+            return;
+
+        var points = mappedIssues.Select(issue => new
+        {
+            id = issue.Id,
+            title = issue.Title ?? "Pa titull",
+            location = issue.Location ?? "Pa vendndodhje",
+            status = issue.Status ?? "Në pritje",
+            latitude = issue.Latitude!.Value,
+            longitude = issue.Longitude!.Value
+        });
+
+        await JS.InvokeVoidAsync("initializeIssueMap", "issue-map", points);
+    }
+}

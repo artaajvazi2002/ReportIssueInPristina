@@ -11,13 +11,16 @@ namespace ReportIssueInPristina.Infrastructure.Services
     {
         private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
         private readonly IImageStorageService _imageStorageService;
+        private readonly IEmailService _emailService;
 
         public ReportService(
             IDbContextFactory<ApplicationDbContext> contextFactory,
-            IImageStorageService imageStorageService)
+            IImageStorageService imageStorageService,
+            IEmailService emailService)
         {
             _contextFactory = contextFactory;
             _imageStorageService = imageStorageService;
+            _emailService = emailService;
         }
 
         public async Task<Issue> CreateReportAsync(Issue issue)
@@ -55,6 +58,15 @@ namespace ReportIssueInPristina.Infrastructure.Services
                 .FirstOrDefaultAsync(i => i.Id == id);
         }
 
+        public async Task<List<IssueStatusUpdate>> GetStatusHistoryAsync(int issueId)
+        {
+            await using var db = _contextFactory.CreateDbContext();
+            return await db.IssueStatusUpdates
+                .Where(update => update.IssueId == issueId)
+                .OrderByDescending(update => update.ChangedAt)
+                .ToListAsync();
+        }
+
         public async Task<Issue?> UpdateReportAsync(Issue issue, string userId)
         {
             await using var db = _contextFactory.CreateDbContext();
@@ -67,6 +79,8 @@ namespace ReportIssueInPristina.Infrastructure.Services
             existingIssue.Title = issue.Title?.Trim();
             existingIssue.Description = issue.Description?.Trim();
             existingIssue.Location = issue.Location?.Trim();
+            existingIssue.Latitude = issue.Latitude;
+            existingIssue.Longitude = issue.Longitude;
             existingIssue.CategoryId = issue.CategoryId;
             existingIssue.ImageUrls = issue.ImageUrls;
 
@@ -90,9 +104,9 @@ namespace ReportIssueInPristina.Infrastructure.Services
             return true;
         }
 
-        public async Task<bool> UpdateStatusAsync(int issueId, string status, bool isAdmin)
+        public async Task<bool> UpdateStatusAsync(int issueId, string status, bool isAdmin, string changedByUserId, string changedByName, string? note)
         {
-            if (!isAdmin)
+            if (!isAdmin || string.IsNullOrWhiteSpace(changedByUserId) || string.IsNullOrWhiteSpace(changedByName))
                 return false;
 
             var allowedStatuses = new[] { "Në pritje", "Në proces", "Zgjidhur" };
@@ -106,8 +120,42 @@ namespace ReportIssueInPristina.Infrastructure.Services
             if (issue == null)
                 return false;
 
+            if (issue.Status == status)
+                return true;
+
+            var reporterEmail = issue.ApplicationUserId is null
+                ? null
+                : await db.Users
+                    .Where(user => user.Id == issue.ApplicationUserId)
+                    .Select(user => user.Email)
+                    .FirstOrDefaultAsync();
+            var previousStatus = issue.Status ?? "Në pritje";
+            var normalizedNote = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+
+            db.IssueStatusUpdates.Add(new IssueStatusUpdate
+            {
+                IssueId = issueId,
+                PreviousStatus = issue.Status,
+                NewStatus = status,
+                ChangedByUserId = changedByUserId,
+                ChangedByName = changedByName,
+                ChangedAt = DateTimeOffset.UtcNow,
+                Note = normalizedNote
+            });
             issue.Status = status;
             await db.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(reporterEmail))
+            {
+                try
+                {
+                    await _emailService.SendStatusUpdateAsync(
+                        reporterEmail, issue.Title ?? $"#{issue.Id}", previousStatus, status, normalizedNote);
+                }
+                catch
+                {
+                }
+            }
 
             return true;
         }

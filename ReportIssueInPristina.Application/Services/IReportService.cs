@@ -9,9 +9,10 @@ namespace ReportIssueInPristina.Application.Services
         Task<List<Issue>> GetAllReportsAsync();
         Task<List<Issue>> GetReportByUserAsync(string userId);
         Task<Issue?> GetReportByIdAsync(int id);
+        Task<List<IssueStatusUpdate>> GetStatusHistoryAsync(int issueId);
         Task<Issue?> UpdateReportAsync(Issue issue, string userId);
         Task<bool> DeleteReportAsync(int issueId, string userId, bool isAdmin);
-        Task<bool> UpdateStatusAsync(int issueId, string status, bool isAdmin);
+        Task<bool> UpdateStatusAsync(int issueId, string status, bool isAdmin, string changedByUserId, string changedByName, string? note);
         Task<List<Category>> GetAllCategoriesAsync();
         Task<Category> CreateCategoryAsync(string name);
     }
